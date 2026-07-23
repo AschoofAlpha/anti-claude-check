@@ -1,0 +1,4 @@
+interface:
+  display_name: "反 Claude 检查"
+  short_description: "面向 Claude 的代理隐私与浏览器环境一致性审计"
+  default_prompt: "Use $anti-claude-check to adapt a read-only audit to this local Windows, Clash Verge, Chrome, and Edge setup, then verify routing, IP reputation, cross-site exits, DNS, WebRTC, IPv6, browser policies and fingerprints, language, policy-group selection, and exit consistency."
