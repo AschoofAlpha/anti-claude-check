@@ -32,7 +32,7 @@ Proxy health is more than an IP address. A setup can show the expected exit whil
 | Clash Verge/Mihomo | Service mode, system proxy, TUN, `strict-route`, stack, LAN access, runtime policy selection |
 | DNS and routing | Mihomo DNS, fake-IP, `any:53`, `respect-rules`, physical-interface bypass, cross-site exits |
 | IPv6 and WebRTC | Physical IPv6, Teredo, tunnel IPv6, ICE candidates, Chrome/Edge policy and extension state |
-| Browser consistency | Active profile, language order, Accept-Language, timezone, WebGL/GPU context, reduced hardware values |
+| Browser consistency | Bundled local probe for active-profile languages, timezone, WebGL/GPU, automation state, reduced hardware values, and ICE candidates |
 | Detector reports | ChaIP/BrowserLeaks-style IP reputation, ASN, RTT, TCP/IP inference, fingerprint contradictions |
 | Local adaptation | Non-default paths, profiles, adapters, policy-group names, and genuine long-term US/Japan usage |
 
@@ -74,13 +74,20 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\collect_window
 
 The collector uses local Windows and browser state, reads Mihomo runtime selection through its HTTP controller or named pipe when available, and emits JSON. Redact usernames, node names, addresses, and other identifiers before posting output publicly.
 
+## Run the local browser probe
+
+Open [`assets/browser-audit.html`](assets/browser-audit.html) in the Chrome profile you normally use, choose English or Simplified Chinese, click **Run audit**, then repeat in Edge. The page has no external dependencies and changes no browser values. It displays a heuristic score, category bars, prioritized findings, and local recommendations. The selected language also applies to the LLM summary and PNG report. When WebRTC testing is enabled, it sends one discovery request to Google's public STUN server; all results remain in the page.
+
+The screen shows raw ICE addresses for local comparison. **Copy report for LLM**, **Download redacted JSON**, and **Download PNG report** replace each address with a classification before sharing. Paste the copied block into Codex, Claude Code, or another LLM using this skill to receive the evidence table and recommendations. The score does not predict Claude approval, and the probe does not determine public IP, DNS resolver ownership, or the real Accept-Language request header, so keep the live network tests in the workflow.
+
 ## How it works
 
 1. Capture a read-only local snapshot.
-2. Verify Chrome and Edge separately with live DNS, WebRTC, IPv4/IPv6, and detector checks.
-3. Label evidence as `verified`, `inferred`, or `manual check required`.
-4. Separate `must fix`, `optional consistency`, and `leave alone` findings.
-5. Apply one approved change at a time and re-test.
+2. Run the bundled browser probe separately in the normal Chrome and Edge profiles.
+3. Verify both browsers with live DNS, public IP, IPv4/IPv6, Accept-Language, and detector checks.
+4. Label evidence as `verified`, `inferred`, or `manual check required`.
+5. Separate `must fix`, `optional consistency`, and `leave alone` findings.
+6. Apply one approved change at a time and re-test.
 
 ## What it deliberately does not do
 

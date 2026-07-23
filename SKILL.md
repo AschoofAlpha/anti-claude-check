@@ -1,6 +1,6 @@
 ---
 name: anti-claude-check
-description: Audit and repair a local Windows, Clash Verge/Mihomo, Google Chrome, and Microsoft Edge setup for service mode, routing, DNS, WebRTC, IPv6, IP reputation, cross-site routing, timezone, language, browser extensions and policies, browser-fingerprint report interpretation, policy-group selection, and exit-region consistency. Use from Codex, Claude Code, Agent Skills-compatible hosts, or other local LLM agents when diagnosing VPN or proxy leaks, reviewing ChaIP or BrowserLeaks-style reports, triaging third-party privacy or anti-detect tools, comparing browser claims with local OS and hardware, adapting checks to non-default local paths and profiles, choosing a coherent US or Japan setup, or producing minimal privacy-hardening recommendations without fingerprint spoofing or platform-evasion guidance.
+description: Audit and repair a local Windows, Clash Verge/Mihomo, Google Chrome, and Microsoft Edge setup for service mode, routing, DNS, WebRTC, IPv6, IP reputation, cross-site routing, timezone, language, browser extensions and policies, browser-fingerprint report interpretation, policy-group selection, and exit-region consistency. Use from Codex, Claude Code, Agent Skills-compatible hosts, or other local LLM agents when diagnosing VPN or proxy leaks, running the bundled scored browser probe, interpreting its LLM or PNG report, reviewing ChaIP or BrowserLeaks-style reports, triaging third-party privacy or anti-detect tools, comparing browser claims with local OS and hardware, adapting checks to non-default local paths and profiles, choosing a coherent US or Japan setup, or producing minimal privacy-hardening recommendations without fingerprint spoofing or platform-evasion guidance.
 ---
 
 # 反 Claude 检查
@@ -26,7 +26,7 @@ Do not install, execute, or copy a third-party repository merely because it appe
 - Use the [minimal WebRTC detection gist](https://gist.github.com/ricco020/9c8eaab4eb901dd254205bf59b49e104) only as a supplementary manual check. Its single-STUN, candidate-parsing result is heuristic; compare any exposed address with the intended exit and confirm in both Chrome and Edge.
 - Treat [vargalott/mihomo](https://github.com/vargalott/mihomo) as configuration inspiration for TUN, `strict-route`, gvisor, and fake-IP concepts, not as a drop-in profile. It targets a specific dual-gateway censorship-circumvention setup; never copy its routes, ports, blanket blocks, placeholders, or credentials without mapping them to the local runtime.
 
-Keep the bundled collector and live browser checks as the primary workflow. Do not vendor these repositories or add them as dependencies.
+Keep the bundled collector, `assets/browser-audit.html`, and live network checks as the primary workflow. Do not vendor these repositories or add them as dependencies.
 
 ## Host Compatibility
 
@@ -34,7 +34,7 @@ Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled 
 
 - **Codex:** install the folder as `$CODEX_HOME/skills/anti-claude-check` or `~/.codex/skills/anti-claude-check`, then invoke `$anti-claude-check` or ask a matching audit question.
 - **Claude Code:** install the folder as `~/.claude/skills/anti-claude-check` for personal use or `.claude/skills/anti-claude-check` for a project, then invoke `/anti-claude-check` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
-- **Other Agent Skills hosts:** preserve `SKILL.md`, `scripts/`, and their relative layout. Ignore `agents/openai.yaml` when the host does not use OpenAI interface metadata.
+- **Other Agent Skills hosts:** preserve `SKILL.md`, `scripts/`, `assets/`, and their relative layout. Ignore `agents/openai.yaml` when the host does not use OpenAI interface metadata.
 - **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1`. If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
 
 Require Windows for local collection. Prefer `pwsh`; fall back to `powershell.exe` 5.1. Run the script with `-NoProfile` and pass `-ConfigDir` or `-PolicyGroupPattern` only when discovery shows that defaults do not fit. Parse JSON from standard output. On non-Windows hosts, analyze supplied reports only and mark local collection unavailable.
@@ -44,7 +44,7 @@ Require Windows for local collection. Prefer `pwsh`; fall back to `powershell.ex
 1. Establish the intended exit country or region and whether it is temporary or long-term.
 2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot. Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. Do not dump complete Mihomo configuration or subscription files, and redact the snapshot before sharing it.
 3. Review actual services, process and listener state, physical versus tunnel adapters, DNS configuration, proxy environment variables, Windows locale, browser profiles, extensions, policies, and Mihomo policy groups.
-4. Test Google Chrome and Microsoft Edge separately in the profiles the user normally uses. Inspect public IP reputation, WebRTC candidates, unique-hostname DNS results, IPv4/IPv6, cross-site exits, browser timezone, `navigator.languages`, the observed Accept-Language header, and the detector's fingerprint report.
+4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `ANTI_CLAUDE_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
 5. Label every result `verified`, `inferred`, or `manual check required`. Never turn missing data into a pass.
 6. Compare every signal with the intended exit rather than treating a detector's score as proof.
 7. Classify findings as `must fix`, `optional consistency`, or `leave alone`.
@@ -123,12 +123,12 @@ Compare the detector report with `System.DeviceContext` and the active Chrome or
 
 ## Cross-Check Chrome and Edge
 
-Use the collector's `Browsers` result to check whether Chrome and Edge have local profiles and any extension whose manifest or localized description mentions WebRTC or RTC leaks. Treat this as a heuristic inventory, not proof that an extension is enabled or effective.
+Use the collector's `Browsers` result to check whether Chrome and Edge have local profiles and any extension whose manifest or localized description mentions WebRTC or RTC leaks. Treat this as a heuristic inventory, not proof that an extension is enabled or effective. Use `assets/browser-audit.html` to collect the same browser-provided fields and ICE candidates in both active profiles without spoofing them.
 
 - Open `chrome://extensions` and `edge://extensions` to confirm whether each reported extension is enabled in the active profile.
 - Treat `LikelyEnabled` as requiring UI confirmation. An absent stored `state` with no disable reason is not conclusive.
 - Inspect Chrome's managed `WebRtcIPHandling` and `WebRtcIPHandlingUrl` values and Edge's `WebRtcIPHandlingUrl` or related WebRTC policy values when present. Do not create a managed policy unless a confirmed leak justifies it and the user approves.
-- Run the same WebRTC test in both browsers. Record exposed candidates and whether they match the intended exit.
+- Run the bundled browser audit in both browsers. Keep raw ICE addresses local; use its redacted copy or download when sharing results. Record exposed candidates and whether they match the intended exit.
 - If no WebRTC leak appears, leave extensions alone; do not install a WebRTC extension merely to improve a score.
 - If only one browser leaks, compare that browser's extension state, permissions, profile, and policy before changing the system-wide proxy.
 - If an extension is present but the test still leaks, report it as ineffective or misconfigured rather than assuming installation equals protection.
@@ -178,6 +178,8 @@ When the goal is a Windows full-tunnel setup, check this baseline without assumi
 Distinguish local interface settings from public egress behavior. A local IPv6-disabled setting can coexist with a proxy-provided IPv6 at the remote endpoint.
 
 ## Report Format
+
+When the user supplies an `ANTI_CLAUDE_BROWSER_REPORT_V1` block, parse its redacted evidence and display the page's overall and category scores before the evidence table. Treat the scores as transparent local heuristics, not independent proof. Explain each flagged item in the context of the collector and live tests; never convert an unknown public WebRTC candidate into a confirmed leak without comparing it with the intended exit.
 
 Return a compact evidence table with these columns: `signal`, `status`, `confidence`, `evidence`, and `action`. Follow it with exactly three short sections:
 

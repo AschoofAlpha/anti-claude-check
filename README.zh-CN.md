@@ -32,7 +32,7 @@
 | Clash Verge/Mihomo | 服务模式、系统代理、TUN、`strict-route`、stack、局域网访问、运行时策略选择 |
 | DNS 与路由 | Mihomo DNS、fake-IP、`any:53`、`respect-rules`、物理网卡绕行、跨网站出口 |
 | IPv6 与 WebRTC | 物理 IPv6、Teredo、隧道 IPv6、ICE candidates、Chrome/Edge 策略与扩展状态 |
-| 浏览器一致性 | 活动配置、语言顺序、Accept-Language、时区、WebGL/GPU 上下文、浏览器降精度硬件值 |
+| 浏览器一致性 | 内置本地探针检查活动配置的语言、时区、WebGL/GPU、自动化状态、浏览器降精度硬件值和 ICE candidates |
 | 检测报告 | ChaIP/BrowserLeaks 类报告中的 IP 信誉、ASN、RTT、TCP/IP 推断及指纹矛盾 |
 | 本机适配 | 非默认路径、配置文件、网卡、策略组名称，以及真实长期美国或日本使用环境 |
 
@@ -74,13 +74,20 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\collect_window
 
 采集器读取本地 Windows 和浏览器状态；条件允许时，通过 Mihomo HTTP 控制器或命名管道只读获取实际策略选择，并输出 JSON。公开结果前必须遮盖用户名、节点名、地址及其他标识符。
 
+## 运行本地浏览器探针
+
+在日常使用的 Chrome 配置中打开 [`assets/browser-audit.html`](assets/browser-audit.html)，选择简体中文或 English，点击 **开始检测**，然后在 Edge 中重复。页面没有外部依赖，也不会修改任何浏览器值；它会显示启发式评分、分类图表、优先问题和本地建议。选择的语言也会应用到 LLM 摘要和 PNG 图片报告。启用 WebRTC 检查时，它会向 Google 公共 STUN 服务器发送一次发现请求，结果只保留在当前页面。
+
+屏幕会显示原始 ICE 地址，供本地比对；使用 **Copy report for LLM**、**Download redacted JSON** 或 **Download PNG report** 分享时，地址会自动替换为分类标签。把复制的报告粘贴到加载此 Skill 的 Codex、Claude Code 或其他 LLM，即可获得证据表和建议。评分不能预测 Claude 是否放行；该探针也不能判断公网 IP、DNS 解析器归属或真实 Accept-Language 请求头，因此仍须保留实时网络测试。
+
 ## 工作流程
 
 1. 采集只读本地快照。
-2. 分别在 Chrome 和 Edge 中实测 DNS、WebRTC、IPv4/IPv6 与检测报告。
-3. 将证据标记为 `已验证`、`推断` 或 `需要人工检查`。
-4. 区分 `必须修复`、`可选一致性` 和 `保持不动`。
-5. 每次只执行一项已获同意的修改，然后重新测试。
+2. 在日常使用的 Chrome 和 Edge 配置中分别运行内置浏览器探针。
+3. 分别实测 DNS、公网 IP、IPv4/IPv6、Accept-Language 与检测报告。
+4. 将证据标记为 `已验证`、`推断` 或 `需要人工检查`。
+5. 区分 `必须修复`、`可选一致性` 和 `保持不动`。
+6. 每次只执行一项已获同意的修改，然后重新测试。
 
 ## 明确不提供
 
