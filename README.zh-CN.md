@@ -1,69 +1,41 @@
 <div align="center">
 
-# 反 Claude 检查
+# 🛡️ Claude Shield (克劳德安全盾)
 
-### 面向正常 Claude 使用场景的网络隐私与环境一致性审计
+### 基于 Claude Code 泄露源码风控逻辑的隐私审计与防封硬化 Skill
 
-![License](https://img.shields.io/badge/license-MIT-2ea44f)
-![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20%7C%207-5391FE)
-![Codex](https://img.shields.io/badge/Codex-skill-111111)
-![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6)](README.zh-CN.md)
+[![Schema](https://img.shields.io/badge/schema-v6.0-5391FE)](scripts/collect_windows_network.ps1)
+[![Codex](https://img.shields.io/badge/Codex-skill-111111)](SKILL.md)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](SKILL.md)
 
-[English](README.md) · [Skill 指令](SKILL.md) · [MIT License](LICENSE)
+[English](README.md) · [Skill 指令](SKILL.md) · [快速开始](#30-秒安装) · [一键修复脚本](#运行一键安全修复脚本)
 
-**一个 Skill 联合检查 Windows、Clash Verge/Mihomo、Chrome 与 Edge，不伪造指纹，不依赖反检测浏览器。**
+**别让 `userID` 设备指纹、`DISABLE_TELEMETRY` 缺失、IPv6/DNS 静默泄漏与 429 限流触顶，毁掉你的 Claude 账号。**
+*拒绝危险的指纹伪造与防关联浏览器，用最干净的 TUN / DNS / 遥测隔离建立 100% 合规安全的系统网络环境。*
 
 </div>
 
 > [!IMPORTANT]
-> 本项目用于发现真实隐私泄漏和环境矛盾，不用于绕过 Claude 审核、机器人检测、验证码、地区限制或平台安全措施。
+> 💡 **为什么屡屡封号？** 拆解 51 万行 leaked 源码发现，封号是**多维综合判定**：多设备共享账号(极高危) > 429限流触顶(高危) > 假工具/蒸馏检测(高危) > CI自动化滥用(中危) > 客户端改包(中危)。本项目通过只读诊断与最小化硬化，消除真实泄漏与矛盾，不用于绕过人机验证或违反服务条款。
 
 ## 为什么需要它
 
 代理正常不等于只有“出口 IP 正确”。DNS、WebRTC、IPv6、自动策略组或另一个浏览器仍可能走不同路径；检测网站也可能把字体、RTT、TCP/IP 系统推断或代理出口 IPv6 误判为泄漏。
 
-`anti-claude-check` 把本地系统证据、Mihomo 运行时状态和浏览器实测整合到同一套流程中，区分真实问题与检测噪声，并只建议最小、可验证的修复。
+`claude-shield` 把本地系统证据、Mihomo/Sing-Box 运行时状态、浏览器实测与 Claude Code 遥测整合到同一套流程中，区分真实问题与检测噪声，并只建议最小、可验证的修复。
 
 ## 能检查什么
 
 | 层级 | 检查范围 |
 | --- | --- |
-| Clash Verge/Mihomo | 服务模式、系统代理、TUN、`strict-route`、stack、局域网访问、运行时策略选择 |
+| Clash Verge / Mihomo / Sing-Box | 服务模式、系统代理、TUN、`strict-route`、stack、局域网访问、运行时策略选择 |
 | DNS 与路由 | Mihomo DNS、fake-IP、`any:53`、`respect-rules`、物理网卡绕行、跨网站出口 |
 | IPv6 与 WebRTC | 物理 IPv6、Teredo、隧道 IPv6、ICE candidates、Chrome/Edge 策略与扩展状态 |
-| 浏览器一致性 | 内置本地探针检查活动配置的语言、时区、WebGL/GPU、自动化状态、浏览器降精度硬件值和 ICE candidates |
+| 浏览器一致性 | 内置本地探针检查活动配置的语言、时区、WebGL/GPU (SwiftShader CPU渲染识别)、自动化状态、降精度硬件值 |
 | Claude Code 源码级审计 | `DISABLE_TELEMETRY` 环境变量、`~/.claude.json` 设备指纹 `userID` 重置、`telemetry` 缓存监控、429 日志触顶扫描、5 大封号原因判定 |
 | 多客户端与跨平台 | 支持 Windows (`pwsh`) / macOS 与 Linux (`collect_posix_network.sh`)，识别 Sing-Box、V2RayN、Xray 等客户端 |
-
-## 运行只读采集器
-
-Windows 在 Skill 目录中执行：
-
-```powershell
-pwsh -NoProfile -File .\scripts\collect_windows_network.ps1
-```
-
-macOS 与 Linux 执行：
-
-```bash
-bash ./scripts/collect_posix_network.sh
-```
-
-## 运行一键安全修复脚本
-
-在经过诊断确认后，可在 Windows PowerShell 中执行一键交互式安全硬化与修复：
-
-```powershell
-pwsh -NoProfile -File .\scripts\remediate_windows_network.ps1
-```
-
-参数说明：
-- `-DisableTelemetry`：一键设置 `DISABLE_TELEMETRY=1` 环境变量。
-- `-ResetDeviceFingerprint`：自动备份 `~/.claude.json` 并清空 `userID`/`deviceId` 指纹。
-- `-ClearTelemetryCache`：一键清理 `~/.claude/telemetry/` 缓存目录。
-- `-DisablePhysicalIPv6`：（需管理员权限）一键禁用物理网卡的 IPv6 绑定。
-- `-WhatIf`：预演模式，仅打印将要执行的操作而不修改系统。
 
 ## 30 秒安装
 
@@ -71,19 +43,19 @@ pwsh -NoProfile -File .\scripts\remediate_windows_network.ps1
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
 ```
 
-使用 `$anti-claude-check` 调用，或直接提出匹配的隐私审计问题。
+使用 `$claude-shield` 调用，或直接提出匹配的隐私审计与防封问题。
 
 ### Claude Code
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/claude-shield"
 ```
 
-使用 `/anti-claude-check` 调用。
+使用 `/claude-shield` 调用。
 
 其他 Agent Skills 宿主保留仓库目录结构并加载 `SKILL.md`。普通本地 LLM 可以把 `SKILL.md` 作为指令，再分析采集器输出的 JSON。
 

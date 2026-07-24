@@ -1,41 +1,41 @@
 <div align="center">
 
-# 反 Claude 检查
+# 🛡️ Claude Shield
 
-### Privacy and environment-consistency audit for legitimate Claude workflows
+### Source-Leak Hardening & Environment Audit Skill for Claude Workflows
 
-![License](https://img.shields.io/badge/license-MIT-2ea44f)
-![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1%20%7C%207-5391FE)
-![Codex](https://img.shields.io/badge/Codex-skill-111111)
-![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)
+[![License](https://img.shields.io/badge/license-MIT-2ea44f)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6)](README.md)
+[![Schema](https://img.shields.io/badge/schema-v6.0-5391FE)](scripts/collect_windows_network.ps1)
+[![Codex](https://img.shields.io/badge/Codex-skill-111111)](SKILL.md)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](SKILL.md)
 
-[简体中文](README.zh-CN.md) · [Skill instructions](SKILL.md) · [MIT License](LICENSE)
+[简体中文](README.zh-CN.md) · [Skill instructions](SKILL.md) · [Quick Install](#30-second-install) · [MIT License](LICENSE)
 
-**One skill to audit Windows, Clash Verge/Mihomo, Chrome, and Edge—without fingerprint spoofing or anti-detect tricks.**
+**Don't let `userID` device fingerprints, missing `DISABLE_TELEMETRY`, IPv6 leaks, or HTTP 429 rate limit spikes get your Claude account suspended.**
+*No fingerprint spoofing or anti-detect tricks. Secure your environment with clean TUN, DNS, and telemetry isolation.*
 
 </div>
 
 > [!IMPORTANT]
-> This project finds real privacy leaks and contradictory environment signals. It does not bypass Claude reviews, bot controls, CAPTCHAs, regional restrictions, or platform safeguards.
+> 💡 **Why accounts get suspended**: Analysis of the 510k-line leaked Claude Code source code reveals multi-dimensional risk evaluation: Multi-device sharing (Very High) > 429 Rate Limit spikes (High) > Anti-distillation fake tool injection (High) > CI Automation abuse (Medium) > Client tampering (Medium). This project provides read-only audit & minimal defensible hardening without bypassing platform terms or bot controls.
 
 ## Why this exists
 
 Proxy health is more than an IP address. A setup can show the expected exit while DNS, WebRTC, IPv6, an automatic policy group, or a second browser still exposes a different path. Detector scores can also mistake harmless signals—fonts, RTT, TCP/IP inference, or proxy-owned IPv6—for leaks.
 
-`anti-claude-check` combines the local evidence and browser checks needed to separate confirmed leaks from detector noise, then recommends the smallest defensible fix.
+`claude-shield` combines local evidence, Mihomo/Sing-Box runtime state, browser checks, and Claude Code telemetry metrics to separate confirmed leaks from detector noise, then recommends the smallest defensible fix.
 
 ## What it checks
 
 | Layer | Coverage |
 | --- | --- |
-| Clash Verge/Mihomo | Service mode, system proxy, TUN, `strict-route`, stack, LAN access, runtime policy selection |
+| Clash Verge / Mihomo / Sing-Box | Service mode, system proxy, TUN, `strict-route`, stack, LAN access, runtime policy selection |
 | DNS and routing | Mihomo DNS, fake-IP, `any:53`, `respect-rules`, physical-interface bypass, cross-site exits |
 | IPv6 and WebRTC | Physical IPv6, Teredo, tunnel IPv6, ICE candidates, Chrome/Edge policy and extension state |
-| Browser consistency | Bundled local probe for active-profile languages, timezone, WebGL/GPU, automation state, reduced hardware values, and ICE candidates |
-| Claude Code source-leak audit | `DISABLE_TELEMETRY` env var, `~/.claude.json` device fingerprint `userID` reset, `telemetry` cache folder monitoring, cloud provider gateways, and 5 primary suspension risk triggers |
-| Detector reports | ChaIP/BrowserLeaks-style IP reputation, ASN, RTT, TCP/IP inference, fingerprint contradictions |
-| Local adaptation | Non-default paths, profiles, adapters, policy-group names, and genuine long-term US/Japan usage |
+| Browser consistency | Bundled local probe for active-profile languages, timezone, WebGL/GPU (SwiftShader CPU rendering fallback detection), automation state, reduced hardware values |
+| Claude Code source-leak audit | `DISABLE_TELEMETRY` env var, `~/.claude.json` device fingerprint `userID` reset, `telemetry` cache folder monitoring, 429 log spike analysis |
+| Multi-client & Cross-platform | Windows (`pwsh`) / macOS & Linux (`collect_posix_network.sh`), detects Sing-Box, V2RayN, Xray |
 
 ## 30-second install
 
@@ -43,19 +43,19 @@ Proxy health is more than an IP address. A setup can show the expected exit whil
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
 ```
 
-Invoke with `$anti-claude-check` or ask a matching privacy-audit question.
+Invoke with `$claude-shield` or ask a matching privacy-audit question.
 
 ### Claude Code
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/claude-shield"
 ```
 
-Invoke with `/anti-claude-check`.
+Invoke with `/claude-shield`.
 
 Other Agent Skills hosts can preserve the repository layout and load `SKILL.md`. Other local LLM agents can load `SKILL.md` as instructions and analyze the collector's JSON output.
 

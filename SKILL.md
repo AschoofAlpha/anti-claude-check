@@ -1,11 +1,11 @@
 ---
-name: anti-claude-check
-description: Audit and repair a local Windows, Clash Verge/Mihomo, Google Chrome, and Microsoft Edge setup for service mode, routing, DNS, WebRTC, IPv6, IP reputation, cross-site routing, timezone, language, browser extensions and policies, browser-fingerprint report interpretation, policy-group selection, and exit-region consistency. Use from Codex, Claude Code, Agent Skills-compatible hosts, or other local LLM agents when diagnosing VPN or proxy leaks, running the bundled scored browser probe, interpreting its LLM or PNG report, reviewing ChaIP or BrowserLeaks-style reports, triaging third-party privacy or anti-detect tools, comparing browser claims with local OS and hardware, adapting checks to non-default local paths and profiles, choosing a coherent US or Japan setup, or producing minimal privacy-hardening recommendations without fingerprint spoofing or platform-evasion guidance.
+name: claude-shield
+description: Audit and repair a local Windows, macOS, Linux, Clash Verge/Mihomo, Sing-Box, Google Chrome, and Microsoft Edge setup for service mode, routing, DNS, WebRTC, IPv6, IP reputation, timezone, language, Claude Code DISABLE_TELEMETRY, ~/.claude.json device fingerprints, 429 rate limit log risks, and minimal privacy-hardening recommendations without fingerprint spoofing or platform-evasion guidance.
 ---
 
-# 反 Claude 检查
+# Claude Shield (克劳德安全盾)
 
-Audit privacy leaks and contradictory network signals without trying to defeat platform safeguards. Prefer stable, ordinary browser behavior and the smallest defensible configuration change.
+Audit privacy leaks, contradictory network signals, and Claude Code telemetry/device ID risks without trying to defeat platform safeguards. Prefer stable, ordinary browser behavior and the smallest defensible configuration change.
 
 ## Safety Boundary
 
@@ -32,8 +32,8 @@ Keep the bundled collector, `assets/browser-audit.html`, and live network checks
 
 Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled files from that directory rather than from the current project or shell working directory.
 
-- **Codex:** install the folder as `$CODEX_HOME/skills/anti-claude-check` or `~/.codex/skills/anti-claude-check`, then invoke `$anti-claude-check` or ask a matching audit question.
-- **Claude Code:** install the folder as `~/.claude/skills/anti-claude-check` for personal use or `.claude/skills/anti-claude-check` for a project, then invoke `/anti-claude-check` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
+- **Codex:** install the folder as `$CODEX_HOME/skills/claude-shield` or `~/.codex/skills/claude-shield`, then invoke `$claude-shield` or ask a matching audit question.
+- **Claude Code:** install the folder as `~/.claude/skills/claude-shield` for personal use or `.claude/skills/claude-shield` for a project, then invoke `/claude-shield` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
 - **Other Agent Skills hosts:** preserve `SKILL.md`, `scripts/`, `assets/`, and their relative layout. Ignore `agents/openai.yaml` when the host does not use OpenAI interface metadata.
 - **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1` (or `<skill-root>/scripts/collect_posix_network.sh` on macOS/Linux). If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
 
