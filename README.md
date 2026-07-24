@@ -20,6 +20,12 @@
 > [!IMPORTANT]
 > 💡 **Why accounts get suspended**: Analysis of the 510k-line leaked Claude Code source code reveals multi-dimensional risk evaluation: Multi-device sharing (Very High) > 429 Rate Limit spikes (High) > Anti-distillation fake tool injection (High) > CI Automation abuse (Medium) > Client tampering (Medium). This project provides read-only audit & minimal defensible hardening without bypassing platform terms or bot controls.
 
+> [!CAUTION]
+> 💔 **Top 3 painful experiences for Claude users**:
+> 1. 💸 **Suspended right after paying**: Getting "Your account has been suspended" within days of paying for Pro/Team subscriptions, with zero support response.
+> 2. 🌐 **Hidden network leaks**: Believing a green proxy node status means safety, while physical ISP DNS, WebRTC candidates, or unhandled IPv6 silently expose real location metadata.
+> 3. ⚡ **429 Rate limit cascade**: Hitting repeated 429 quota limits during intense coding sessions, followed by device ID fingerprinting via `~/.claude.json` and telemetry log bans.
+
 ## Why this exists
 
 Proxy health is more than an IP address. A setup can show the expected exit while DNS, WebRTC, IPv6, an automatic policy group, or a second browser still exposes a different path. Detector scores can also mistake harmless signals—fonts, RTT, TCP/IP inference, or proxy-owned IPv6—for leaks.
