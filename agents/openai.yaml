@@ -1,4 +1,4 @@
 interface:
   display_name: "反 Claude 检查"
-  short_description: "面向 Claude 的代理隐私与浏览器环境一致性审计"
-  default_prompt: "Use $anti-claude-check to adapt a read-only audit to this local Windows, Clash Verge, Chrome, and Edge setup, then interpret the bundled browser probe's score, visual report, redacted evidence, and recommendations alongside routing, DNS, WebRTC, IPv6, browser, language, and exit checks."
+  short_description: "面向 Claude 的代理隐私、浏览器环境与源码级防封审计"
+  default_prompt: "Use $anti-claude-check to adapt a read-only audit to this local setup (Windows/macOS/Linux), Clash Verge/Mihomo/Sing-Box, Chrome, Edge, and Claude Code environment. Audit routing, DNS, WebRTC, IPv6, browser language, exit checks, DISABLE_TELEMETRY, ~/.claude.json device fingerprints, and HTTP 429 rate-limit log risks, then run or recommend interactive remediation scripts."

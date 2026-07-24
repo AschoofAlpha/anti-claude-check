@@ -33,6 +33,7 @@ Proxy health is more than an IP address. A setup can show the expected exit whil
 | DNS and routing | Mihomo DNS, fake-IP, `any:53`, `respect-rules`, physical-interface bypass, cross-site exits |
 | IPv6 and WebRTC | Physical IPv6, Teredo, tunnel IPv6, ICE candidates, Chrome/Edge policy and extension state |
 | Browser consistency | Bundled local probe for active-profile languages, timezone, WebGL/GPU, automation state, reduced hardware values, and ICE candidates |
+| Claude Code source-leak audit | `DISABLE_TELEMETRY` env var, `~/.claude.json` device fingerprint `userID` reset, `telemetry` cache folder monitoring, cloud provider gateways, and 5 primary suspension risk triggers |
 | Detector reports | ChaIP/BrowserLeaks-style IP reputation, ASN, RTT, TCP/IP inference, fingerprint contradictions |
 | Local adaptation | Non-default paths, profiles, adapters, policy-group names, and genuine long-term US/Japan usage |
 

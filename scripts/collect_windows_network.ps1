@@ -681,6 +681,92 @@ foreach ($scope in @('Process','User','Machine')) {
     }
 }
 
+$claudeDisableTelemetry = @()
+foreach ($scope in @('Process','User','Machine')) {
+    $val = [Environment]::GetEnvironmentVariable('DISABLE_TELEMETRY', $scope)
+    if ($val) {
+        $claudeDisableTelemetry += [pscustomobject][ordered]@{ Scope = $scope; Value = $val }
+    }
+}
+
+$claudeConfigFile = Join-Path $env:USERPROFILE '.claude.json'
+$claudeConfigExists = Test-Path -LiteralPath $claudeConfigFile -PathType Leaf
+$claudeHasUserId = $false
+$claudeHasDeviceId = $false
+if ($claudeConfigExists) {
+    $claudeJson = Read-JsonIfPresent -Path $claudeConfigFile
+    if ($null -ne $claudeJson) {
+        if ($null -ne (Get-PropertyValue -Object $claudeJson -Name 'userID')) {
+            $claudeHasUserId = $true
+        }
+        if ($null -ne (Get-PropertyValue -Object $claudeJson -Name 'deviceId')) {
+            $claudeHasDeviceId = $true
+        }
+    }
+}
+
+$telemetryDir = Join-Path (Join-Path $env:USERPROFILE '.claude') 'telemetry'
+$telemetryDirExists = Test-Path -LiteralPath $telemetryDir -PathType Container
+$telemetryFileCount = 0
+$telemetryTotalSizeBytes = 0
+if ($telemetryDirExists) {
+    $tFiles = @(Get-ChildItem -LiteralPath $telemetryDir -File -Recurse -ErrorAction SilentlyContinue)
+    $telemetryFileCount = $tFiles.Count
+    foreach ($f in $tFiles) {
+        $telemetryTotalSizeBytes += $f.Length
+    }
+}
+
+$cloudProviders = [ordered]@{
+    UseBedrock = [bool]([Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'Process') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'User') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'Machine'))
+    UseVertex = [bool]([Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_VERTEX', 'Process') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_VERTEX', 'User') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_VERTEX', 'Machine'))
+    HasAnthropicApiKey = [bool]([Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process') -or [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'User') -or [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Machine'))
+}
+
+$multiClientProcesses = @()
+$clientNames = @('sing-box','v2rayN','v2ray','xray','nekobox')
+foreach ($cn in $clientNames) {
+    $proc = Get-Process -Name $cn -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -ne $proc) {
+        $multiClientProcesses += [pscustomobject][ordered]@{ Name = $cn; Running = $true; ProcessId = $proc.Id }
+    }
+}
+
+$claudeLogsDir = Join-Path (Join-Path $env:USERPROFILE '.claude') 'logs'
+$rateLimit429Count = 0
+$latest429Timestamp = $null
+if (Test-Path -LiteralPath $claudeLogsDir -PathType Container) {
+    $logFiles = @(Get-ChildItem -LiteralPath $claudeLogsDir -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10)
+    foreach ($lf in $logFiles) {
+        try {
+            $lines = Get-Content -LiteralPath $lf.FullName -Tail 500 -ErrorAction SilentlyContinue
+            foreach ($line in $lines) {
+                if ($line -match '(?i)429|rate[ _]?limit|too many requests') {
+                    $rateLimit429Count++
+                    $tsMatch = [regex]::Match($line, '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}')
+                    if ($tsMatch.Success) {
+                        $latest429Timestamp = $tsMatch.Value
+                    }
+                }
+            }
+        } catch {}
+    }
+}
+
+$claudeAudit = [ordered]@{
+    DisableTelemetryVars = $claudeDisableTelemetry
+    DisableTelemetryActive = ($claudeDisableTelemetry.Count -gt 0)
+    ConfigFilePresent = $claudeConfigExists
+    HasUserIdFingerprint = $claudeHasUserId
+    HasDeviceIdFingerprint = $claudeHasDeviceId
+    TelemetryDirPresent = $telemetryDirExists
+    TelemetryFileCount = $telemetryFileCount
+    TelemetrySizeBytes = $telemetryTotalSizeBytes
+    CloudProviders = $cloudProviders
+    RateLimit429EventsDetected = $rateLimit429Count
+    Latest429Timestamp = $latest429Timestamp
+}
+
 $dnsHijackAny53 = $combinedConfig -match "(?im)^\s*-\s*['`"]?any:53['`"]?\s*(?:#.*)?$"
 $processRunning = $null -ne (Get-Process -Name 'verge-mihomo','mihomo','clash-meta','clash' -ErrorAction SilentlyContinue | Select-Object -First 1)
 $chromeAudit = Get-BrowserWebRtcAudit -Name 'Google Chrome' -UserDataPath (Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data') -ProcessName 'chrome.exe' -PolicyRegistryPath 'Google\Chrome' -ExecutablePaths @(
@@ -695,12 +781,13 @@ $edgeAudit = Get-BrowserWebRtcAudit -Name 'Microsoft Edge' -UserDataPath (Join-P
 $policyAudit = Get-MihomoPolicyAudit -RuntimeConfig $runtimeConfig -ControllerConfig $appConfig -GroupPattern $PolicyGroupPattern
 
 $result = [ordered]@{
-    SchemaVersion = 4
+    SchemaVersion = 6
     CollectedAt = (Get-Date).ToUniversalTime().ToString('o')
     System = [ordered]@{
         IsAdministrator = $isAdministrator
         DeviceContext = $deviceContext
         MihomoProcessRunning = $processRunning
+        OtherProxyClientsRunning = $multiClientProcesses
         ClashVergeServices = $serviceMatches
         ServiceModeActive = @($serviceMatches | Where-Object State -eq 'Running').Count -gt 0
         MixedPort = $mixedPort
@@ -743,6 +830,8 @@ $result = [ordered]@{
         Chrome = $chromeAudit
         Edge = $edgeAudit
     }
+    ClaudeCode = $claudeAudit
 }
 
 $result | ConvertTo-Json -Depth 10
+

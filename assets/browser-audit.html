@@ -161,6 +161,15 @@
       <h2 id="output-heading">Result</h2>
       <pre id="output">Run the audit in both Chrome and Edge, using the profiles you normally use.</pre>
     </section>
+
+    <section class="panel" aria-labelledby="import-heading">
+      <h2 id="import-heading">Import Collector JSON (Schema V5/V6)</h2>
+      <div id="dropzone" style="border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; background: #0b1428;">
+        <p style="margin: 0; font-weight: 650;" id="dropzone-text">Drag & drop collector JSON file here (collect_windows_network.ps1 / collect_posix_network.sh), or click to select</p>
+        <input id="json-input" type="file" accept=".json" hidden>
+      </div>
+      <div id="collector-summary" style="margin-top: 16px; font-size: 0.95rem; line-height: 1.6;" hidden></div>
+    </section>
   </main>
 
   <script>
@@ -309,12 +318,17 @@
       const gl = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       if (!gl) return { available: false };
       const debug = gl.getExtension("WEBGL_debug_renderer_info");
+      const unmaskedVendor = debug ? gl.getParameter(debug.UNMASKED_VENDOR_WEBGL) : null;
+      const unmaskedRenderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null;
+      const combined = `${unmaskedVendor || ""} ${unmaskedRenderer || ""} ${gl.getParameter(gl.RENDERER) || ""}`;
+      const isSoftwareRendering = /swiftshader|llvmpipe|software|angle \(.*software.*\)/i.test(combined);
       return {
         available: true,
         vendor: gl.getParameter(gl.VENDOR),
         renderer: gl.getParameter(gl.RENDERER),
-        unmaskedVendor: debug ? gl.getParameter(debug.UNMASKED_VENDOR_WEBGL) : null,
-        unmaskedRenderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null
+        unmaskedVendor,
+        unmaskedRenderer,
+        isSoftwareRendering
       };
     }
 
@@ -820,6 +834,56 @@
       if (!buildReportCanvas(sample, assessment).toDataURL("image/png").startsWith("data:image/png")) throw new Error("PNG self-test failed");
       return true;
     };
+
+    const dropzone = document.querySelector("#dropzone");
+    const jsonInput = document.querySelector("#json-input");
+    const collectorSummary = document.querySelector("#collector-summary");
+
+    if (dropzone && jsonInput) {
+      dropzone.addEventListener("click", () => jsonInput.click());
+      dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.style.background = "#132347"; });
+      dropzone.addEventListener("dragleave", () => { dropzone.style.background = "#0b1428"; });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.style.background = "#0b1428";
+        if (e.dataTransfer.files.length) handleJsonFile(e.dataTransfer.files[0]);
+      });
+      jsonInput.addEventListener("change", () => {
+        if (jsonInput.files.length) handleJsonFile(jsonInput.files[0]);
+      });
+    }
+
+    function handleJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          renderCollectorSummary(data);
+        } catch (err) {
+          collectorSummary.hidden = false;
+          collectorSummary.innerHTML = `<div style="color: var(--danger);"><strong>Error parsing JSON:</strong> ${err.message}</div>`;
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderCollectorSummary(data) {
+      collectorSummary.hidden = false;
+      const c = data.ClaudeCode || {};
+      const sys = data.System || {};
+      const mihomo = data.Mihomo || {};
+
+      let html = `<div style="background: #0d1529; border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px;">`;
+      html += `<strong>Imported Snapshot (Schema v${data.SchemaVersion || 'unknown'})</strong><br>`;
+      html += `• <strong>System Proxy:</strong> ${sys.SystemProxy?.Enabled ? 'Enabled' : 'Disabled'}<br>`;
+      html += `• <strong>TUN Mode:</strong> ${mihomo.TunEnabled ? 'Enabled (' + (mihomo.TunStack || 'default') + ')' : 'Disabled'}<br>`;
+      html += `• <strong>Claude Telemetry:</strong> ${c.DisableTelemetryActive ? '<span style="color:var(--ok)">Disabled (DISABLE_TELEMETRY=1)</span>' : '<span style="color:var(--danger)">Active (Not disabled)</span>'}<br>`;
+      html += `• <strong>Device Fingerprint:</strong> ${c.HasUserIdFingerprint ? '<span style="color:var(--warn)">userID present in ~/.claude.json</span>' : '<span style="color:var(--ok)">Clean (No userID field)</span>'}<br>`;
+      html += `• <strong>Telemetry Cache:</strong> ${c.TelemetryFileCount || 0} files (${Math.round((c.TelemetrySizeBytes || 0) / 1024)} KB)<br>`;
+      html += `• <strong>HTTP 429 Events:</strong> ${c.RateLimit429EventsDetected || 0} occurrences detected`;
+      html += `</div>`;
+      collectorSummary.innerHTML = html;
+    }
 
     uiLanguage.value = currentLanguage;
     uiLanguage.addEventListener("change", () => {

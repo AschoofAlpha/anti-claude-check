@@ -35,14 +35,15 @@ Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled 
 - **Codex:** install the folder as `$CODEX_HOME/skills/anti-claude-check` or `~/.codex/skills/anti-claude-check`, then invoke `$anti-claude-check` or ask a matching audit question.
 - **Claude Code:** install the folder as `~/.claude/skills/anti-claude-check` for personal use or `.claude/skills/anti-claude-check` for a project, then invoke `/anti-claude-check` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
 - **Other Agent Skills hosts:** preserve `SKILL.md`, `scripts/`, `assets/`, and their relative layout. Ignore `agents/openai.yaml` when the host does not use OpenAI interface metadata.
-- **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1`. If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
+- **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1` (or `<skill-root>/scripts/collect_posix_network.sh` on macOS/Linux). If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
 
-Require Windows for local collection. Prefer `pwsh`; fall back to `powershell.exe` 5.1. Run the script with `-NoProfile` and pass `-ConfigDir` or `-PolicyGroupPattern` only when discovery shows that defaults do not fit. Parse JSON from standard output. On non-Windows hosts, analyze supplied reports only and mark local collection unavailable.
+On Windows hosts, prefer `pwsh`; fall back to `powershell.exe` 5.1. On macOS or Linux hosts, run `scripts/collect_posix_network.sh`.
+To apply approved remediations interactively, run `<skill-root>/scripts/remediate_windows_network.ps1`.
 
 ## Audit Workflow
 
 1. Establish the intended exit country or region and whether it is temporary or long-term.
-2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot. Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. Do not dump complete Mihomo configuration or subscription files, and redact the snapshot before sharing it.
+2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot (or `scripts/collect_posix_network.sh` on macOS/Linux). Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. Do not dump complete Mihomo configuration or subscription files, and redact the snapshot before sharing it.
 3. Review actual services, process and listener state, physical versus tunnel adapters, DNS configuration, proxy environment variables, Windows locale, browser profiles, extensions, policies, and Mihomo policy groups.
 4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `ANTI_CLAUDE_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
 5. Label every result `verified`, `inferred`, or `manual check required`. Never turn missing data into a pass.
@@ -76,6 +77,29 @@ Use the snapshot and live browser tests together:
 | IP reputation | Country, ASN, provider type, proxy flags, abuse indicators, and blacklist claims from the supplied report | Separate confirmed routing facts from database opinions; corroborate severe claims when possible |
 | Cross-site routing | Observed exit country, ASN, and IP grouping for each tested site | Protected sites follow the intended group; intentional direct routes are documented; physical-ISP exits are failures |
 | Browser fingerprint | Detector values plus local OS, processor count, memory, GPU, and resolution context | Explain contradictions and confidence without prescribing spoofing or anti-detect tools |
+| Claude Code telemetry | DisableTelemetry env var, ~/.claude.json userID field, ~/.claude/telemetry cache size, Bedrock/Vertex API configuration | Telemetry is disabled or managed; device fingerprint is clean; no multi-device sharing |
+
+## Claude Code Telemetry & Account Suspension Risk Audit
+
+Audit local Claude Code / CLI settings and explain account risk factors using findings from reverse-engineered client source code:
+
+### 5 Primary Suspension Risk Factors (Ranked by Severity)
+
+1. **Account Sharing (Very High Risk)**: Single account (`account_uuid`) accessed across multiple `Device ID`s, accompanied by conflicting IPs, operating systems, or timezones.
+2. **Rate Limit Escalation (High Risk)**: Aggregated usage by `account_uuid` + `subscription_type` + `rate_limit_tier`. Repeatedly hitting limits triggers HTTP 429 errors which escalate to account bans.
+3. **Content & Anti-Distillation (High Risk)**: Automated content fingerprinting and detection of fake tool injection patterns or model distillation attempts.
+4. **Automation Abuse (Medium Risk)**: Combination of headless/CI execution environment, non-interactive shell execution, SDK entry point detection, and abnormal token consumption velocity.
+5. **Client Tampering (Medium Risk)**: Mismatched client version fingerprints, modified binary headers, or malformed User-Agent strings.
+
+### Telemetry & Device ID Audit Rules
+
+Use the collector's `ClaudeCode` section to audit local status:
+
+- **Telemetry Disablement (`DISABLE_TELEMETRY`)**: Verify whether `$env:DISABLE_TELEMETRY` is set to `1` across Process, User, or Machine environment variables. Recommend setting `$env:DISABLE_TELEMETRY=1` to disable local telemetry collection.
+- **Device Fingerprint Reset (`~/.claude.json`)**: Check if `~/.claude.json` contains a `userID` or `deviceId` identifier. If account sharing or multi-device ambiguity occurred, recommend deleting the `userID` field to reset the local device fingerprint.
+- **Telemetry Cache Cleanup (`~/.claude/telemetry/`)**: Inspect the local telemetry cache directory `$HOME\.claude\telemetry\`. Recommend clearing this directory if cached events have accumulated.
+- **Managed Enterprise Gateways**: Note whether Bedrock or Vertex API overrides (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`) are active, as these official enterprise endpoints automatically disable client telemetry analysis.
+- **Single Account Operational Baseline**: Advise strict adherence to 1 account = 1 user = 1 primary device/IP setup without sharing credentials across different locations.
 
 ## Interpret Results
 

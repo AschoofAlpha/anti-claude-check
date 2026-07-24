@@ -33,8 +33,37 @@
 | DNS 与路由 | Mihomo DNS、fake-IP、`any:53`、`respect-rules`、物理网卡绕行、跨网站出口 |
 | IPv6 与 WebRTC | 物理 IPv6、Teredo、隧道 IPv6、ICE candidates、Chrome/Edge 策略与扩展状态 |
 | 浏览器一致性 | 内置本地探针检查活动配置的语言、时区、WebGL/GPU、自动化状态、浏览器降精度硬件值和 ICE candidates |
-| 检测报告 | ChaIP/BrowserLeaks 类报告中的 IP 信誉、ASN、RTT、TCP/IP 推断及指纹矛盾 |
-| 本机适配 | 非默认路径、配置文件、网卡、策略组名称，以及真实长期美国或日本使用环境 |
+| Claude Code 源码级审计 | `DISABLE_TELEMETRY` 环境变量、`~/.claude.json` 设备指纹 `userID` 重置、`telemetry` 缓存监控、429 日志触顶扫描、5 大封号原因判定 |
+| 多客户端与跨平台 | 支持 Windows (`pwsh`) / macOS 与 Linux (`collect_posix_network.sh`)，识别 Sing-Box、V2RayN、Xray 等客户端 |
+
+## 运行只读采集器
+
+Windows 在 Skill 目录中执行：
+
+```powershell
+pwsh -NoProfile -File .\scripts\collect_windows_network.ps1
+```
+
+macOS 与 Linux 执行：
+
+```bash
+bash ./scripts/collect_posix_network.sh
+```
+
+## 运行一键安全修复脚本
+
+在经过诊断确认后，可在 Windows PowerShell 中执行一键交互式安全硬化与修复：
+
+```powershell
+pwsh -NoProfile -File .\scripts\remediate_windows_network.ps1
+```
+
+参数说明：
+- `-DisableTelemetry`：一键设置 `DISABLE_TELEMETRY=1` 环境变量。
+- `-ResetDeviceFingerprint`：自动备份 `~/.claude.json` 并清空 `userID`/`deviceId` 指纹。
+- `-ClearTelemetryCache`：一键清理 `~/.claude/telemetry/` 缓存目录。
+- `-DisablePhysicalIPv6`：（需管理员权限）一键禁用物理网卡的 IPv6 绑定。
+- `-WhatIf`：预演模式，仅打印将要执行的操作而不修改系统。
 
 ## 30 秒安装
 
