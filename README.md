@@ -14,28 +14,30 @@
 
 > *"The safest disguise is no disguise. Defeat the strictest AI risk controls using pure network isolation."*
 
-**Don't let `userID` device fingerprints, missing `DISABLE_TELEMETRY`, IPv6 leaks, or HTTP 429 rate limit spikes get your Claude account suspended.**
-*No fingerprint spoofing or anti-detect tricks. Secure your environment with clean TUN, DNS, and telemetry isolation.*
+> *"The safest way to stay connected is to be honest about your own network."*
+
+**Don't let hidden device trackers, accidental IP leaks, or rapid-fire request errors get your Claude account suspended out of nowhere.**
+*Say no to risky "anti-detect" browser spoofing—secure your workspace with pure, clean network isolation.*
 
 </div>
 
 > [!IMPORTANT]
-> 💡 **Why is your Claude account repeatedly suspended? — 5 Risk Evaluation Dimensions from 510k-Line Leaked Source Code**
+> 💡 **Why do Claude accounts get suspended? —— Uncovering the 5 Risk Truths from 510k Lines of Leaked Code**
 > 
-> Account suspension is a **multi-dimensional risk evaluation**. The 5 primary causes ranked by severity:
-> 1. 🚨 **Multi-Device Account Sharing (Risk: Critical)**: Source code reveals clients generate a unique device ID (`userID` / `deviceId`) in `~/.claude.json`. When one account appears on multiple Device IDs accompanied by sudden exit IP shifts, OS switching (Windows vs macOS), or timezone mismatches, automatic bans are triggered for credential sharing.
-> 2. ⚡ **429 Rate Limit Spikes (Risk: High)**: Monitored by `account_uuid` + `subscription_type` (Pro/Team) + `rate_limit_tier`. Repeated long-context prompt spikes trigger HTTP 429 quota limits, escalating rate limit tiers to full account bans.
-> 3. 🕵️ **Fake Tool Injection & Anti-Distillation (Risk: High)**: Source code incorporates `tengu_anti_distill_fake_tool_injection`. When distillation or MITM proxying is suspected, false tool definitions are injected into System Prompts; executing these fake tools flags the session for data harvesting.
-> 4. 🤖 **CI Automation Abuse (Risk: Medium)**: Monitored via headless environment flags, non-interactive shells, CI/CD env vars, and token consumption velocity.
-> 5. 🛠️ **Client Tampering & Mismatch (Risk: Medium)**: Triggered by client version checksum failures, malformed User-Agents, or anti-detect browser rewrites.
+> Account suspensions aren't random; they are based on a multi-dimensional scoring system. Here are the core triggers (ranked by severity):
+> 1. 🚨 **Account Sharing & Multi-Device Hopping (Critical Risk)**: Claude secretly generates a persistent "Device ID" on your local machine. If your account bounces across multiple IDs, countries, or operating systems in a short period, the system flags it as "account sharing/selling" and bans it instantly.
+> 2. ⚡ **Abusing Rate Limits (High Risk)**: Official servers strictly monitor request frequencies. Firing off massive prompts too fast and repeatedly hitting HTTP 429 "Too Many Requests" errors will flag your account for resource abuse and eventual suspension.
+> 3. 🕵️ **"Model Distillation" & Fake Tool Traps (High Risk)**: The source code contains hidden "anti-distillation" traps. If the server suspects your traffic is being intercepted or used to train competitor AI models, it silently injects fake tools into the prompt. If your automation script takes the bait, you're flagged.
+> 4. 🤖 **Careless Automation (Medium Risk)**: The system checks if a real human is behind the screen. Running in headless cloud servers, non-interactive shells, or consuming tokens at superhuman speeds will trigger alarms.
+> 5. 🛠️ **Clumsy Fingerprint Spoofing (Medium Risk)**: Many users try to outsmart the system using "anti-detect browsers" to fake their User-Agent or hardware. When Claude's validation checks see through these sloppy disguises, it serves as direct proof of suspicious behavior.
 > 
 > *This project provides read-only diagnostics & minimal defensible hardening to eliminate real physical network leaks without violating platform Terms of Service.*
 
 > [!CAUTION]
-> 💔 **Top 3 Painful Experiences for Claude Users**:
-> 1. 💸 **Suspended Right After Paying**: Getting "Your account has been suspended" within days of paying for Pro/Team subscriptions, receiving automated email rejections with lost funds and chat history.
-> 2. 🌐 **Hidden Physical Network Leaks**: Believing a green proxy status guarantees safety, while physical ISP DNS queries, WebRTC candidate addresses, or unhandled IPv6 silently reveal domestic broadband identity.
-> 3. ⚡ **429 Rate Limit Cascade**: Hitting repeated 429 quota limits during intense coding sessions, where missing `DISABLE_TELEMETRY=1` and fixed `~/.claude.json` Device IDs continuously report local tracking traces until banned.
+> 💔 **The Top 3 Painful Experiences for Claude Users**:
+> 1. 💸 **Suspended Right After Paying**: You just paid for a Pro/Team subscription, only to wake up three days later to a "Your account has been suspended" screen. Appeals are met with automated bot replies, and both your money and chat history are gone forever.
+> 2. 🌐 **The Illusion of a "Green" Proxy**: You think you're safe because your proxy app shows a stable connection. Little do you know, your physical network adapter's DNS, unhandled IPv6 traffic, or WebRTC loopholes are silently leaking your real domestic ISP identity in the background.
+> 3. ⚡ **Banned in the Middle of Coding**: While deeply immersed in coding with Claude Code, missing background blockers allow your local tracking traces and persistent Device ID to be continuously uploaded. Hit the rate limit just a few times, and your entire account gets dragged into the ban-zone.
 
 ### 🛡️ Why you need Claude Shield
 
