@@ -51,16 +51,16 @@
 
 ```powershell
 # 1. 克隆仓库
-git clone https://github.com/AschoofAlpha/anti-claude-check.git
+git clone https://github.com/AschoofAlpha/claude-shield.git
 
 # 2. 运行只读诊断 (Windows)
-pwsh -NoProfile -File .\anti-claude-check\scripts\collect_windows_network.ps1
+pwsh -NoProfile -File .\claude-shield\scripts\collect_windows_network.ps1
 
 # 2. 运行只读诊断 (macOS / Linux)
-bash ./anti-claude-check/scripts/collect_posix_network.sh
+bash ./claude-shield/scripts/collect_posix_network.sh
 
 # 3. 运行一键安全硬化与防封修复 (Windows)
-pwsh -NoProfile -File .\anti-claude-check\scripts\remediate_windows_network.ps1
+pwsh -NoProfile -File .\claude-shield\scripts\remediate_windows_network.ps1
 ```
 
 ### 2. AI Agent 助手集成 (Codex / Cursor / Windsurf / VS Code / Claude Code)
@@ -70,7 +70,7 @@ pwsh -NoProfile -File .\anti-claude-check\scripts\remediate_windows_network.ps1
 - **Codex**：
   ```powershell
   New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-  git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
+  git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/claude-shield"
   ```
   在对话中使用 `$claude-shield` 调用。
 

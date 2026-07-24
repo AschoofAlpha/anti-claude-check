@@ -12,7 +12,7 @@ Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "  Anti-Claude-Check PowerShell Remediation & Hardening" -ForegroundColor Cyan
+Write-Host "  Claude-Shield PowerShell Remediation & Hardening" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host ""
 

@@ -51,16 +51,16 @@ Run directly in your system terminal for read-only audit & 1-click hardening wit
 
 ```powershell
 # 1. Clone repository
-git clone https://github.com/AschoofAlpha/anti-claude-check.git
+git clone https://github.com/AschoofAlpha/claude-shield.git
 
 # 2. Run read-only audit (Windows)
-pwsh -NoProfile -File .\anti-claude-check\scripts\collect_windows_network.ps1
+pwsh -NoProfile -File .\claude-shield\scripts\collect_windows_network.ps1
 
 # 2. Run read-only audit (macOS / Linux)
-bash ./anti-claude-check/scripts/collect_posix_network.sh
+bash ./claude-shield/scripts/collect_posix_network.sh
 
 # 3. Run 1-click security hardening & fix (Windows)
-pwsh -NoProfile -File .\anti-claude-check\scripts\remediate_windows_network.ps1
+pwsh -NoProfile -File .\claude-shield\scripts\remediate_windows_network.ps1
 ```
 
 ### 2. AI Agent Integration (Codex / Cursor / Windsurf / VS Code / Claude Code)
@@ -70,7 +70,7 @@ If you want an AI Coding Agent to parse your local diagnostic output and provide
 - **Codex**:
   ```powershell
   New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-  git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
+  git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/claude-shield"
   ```
   Invoke with `$claude-shield` in conversation.
 

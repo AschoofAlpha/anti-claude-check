@@ -624,7 +624,7 @@
           JSON.stringify(exportPayload(), null, 2),
           "```",
           "",
-          "给 LLM 的指令：使用 anti-claude-check Skill，先显示评分和证据表，再输出“必须处理”“可选一致性”“保持不动”。该评分仅为启发式判断；得出结论前必须结合公网 IP、DNS、IPv6、Accept-Language 和路由实测。"
+          "给 LLM 的指令：使用 claude-shield Skill，先显示评分和证据表，再输出“必须处理”“可选一致性”“保持不动”。该评分仅为启发式判断；得出结论前必须结合公网 IP、DNS、IPv6、Accept-Language 和路由实测。"
         ].join("\n");
       }
       return [
@@ -641,7 +641,7 @@
         JSON.stringify(exportPayload(), null, 2),
         "```",
         "",
-        "LLM instruction: Use the anti-claude-check skill. Show the score and an evidence table, then Must fix, Optional consistency, and Leave alone. Treat this score as heuristic and require live public-IP, DNS, IPv6, Accept-Language, and routing evidence before concluding."
+        "LLM instruction: Use the claude-shield skill. Show the score and an evidence table, then Must fix, Optional consistency, and Leave alone. Treat this score as heuristic and require live public-IP, DNS, IPv6, Accept-Language, and routing evidence before concluding."
       ].join("\n");
     }
 

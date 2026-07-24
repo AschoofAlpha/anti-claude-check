@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# anti-claude-check POSIX Collector Script
+# claude-shield POSIX Collector Script
 # Read-only network and Claude Code environment collection for macOS and Linux
 
 OS_NAME="$(uname -s)"
