@@ -38,7 +38,7 @@ Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled 
 - **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1` (or `<skill-root>/scripts/collect_posix_network.sh` on macOS/Linux). If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
 
 On Windows hosts, prefer `pwsh`; fall back to `powershell.exe` 5.1. On macOS or Linux hosts, run `scripts/collect_posix_network.sh`.
-To apply approved remediations interactively, run `<skill-root>/scripts/remediate_windows_network.ps1`.
+To apply approved remediations interactively, run `<skill-root>/scripts/remediate_windows_network.ps1` on Windows, or `<skill-root>/scripts/remediate_posix_network.sh` on macOS/Linux.
 
 ## Audit Workflow
 
@@ -200,6 +200,14 @@ When the goal is a Windows full-tunnel setup, check this baseline without assumi
 - Pin sensitive service traffic to a deliberate, stable policy group instead of automatic node selection.
 
 Distinguish local interface settings from public egress behavior. A local IPv6-disabled setting can coexist with a proxy-provided IPv6 at the remote endpoint.
+
+## Generic Baseline for Non-Clash Proxies
+
+If the user employs a proxy core other than Mihomo (e.g., Xray, Sing-Box native, Surge, Quantumult X):
+- Do not attempt to read or write Clash-specific YAML configurations.
+- Verify if the client supports a true TUN (virtual network interface) mode. If it only supports system proxy (HTTP/SOCKS), warn the user that DNS and WebRTC leaks are highly probable unless strict browser extensions are used.
+- For DNS, recommend enabling the client's equivalent of `fake-ip` or overriding system DNS to the TUN interface.
+- Rely on OS-level remediation (e.g., `remediate_windows_network.ps1` / `remediate_posix_network.sh`) to disable telemetry and physical IPv6, and instruct the user to manually configure their specific proxy client according to the physical isolation principles.
 
 ## Report Format
 
