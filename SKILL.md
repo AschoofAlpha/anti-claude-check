@@ -45,7 +45,7 @@ To apply approved remediations interactively, run `<skill-root>/scripts/remediat
 1. Establish the intended exit country or region and whether it is temporary or long-term.
 2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot (or `scripts/collect_posix_network.sh` on macOS/Linux). Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. Do not dump complete Mihomo configuration or subscription files, and redact the snapshot before sharing it.
 3. Review actual services, process and listener state, physical versus tunnel adapters, DNS configuration, proxy environment variables, Windows locale, browser profiles, extensions, policies, and Mihomo policy groups.
-4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `ANTI_CLAUDE_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
+4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `CLAUDE_SHIELD_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
 5. Label every result `verified`, `inferred`, or `manual check required`. Never turn missing data into a pass.
 6. Compare every signal with the intended exit rather than treating a detector's score as proof.
 7. Classify findings as `must fix`, `optional consistency`, or `leave alone`.
@@ -203,7 +203,7 @@ Distinguish local interface settings from public egress behavior. A local IPv6-d
 
 ## Report Format
 
-When the user supplies an `ANTI_CLAUDE_BROWSER_REPORT_V1` block, parse its redacted evidence and display the page's overall and category scores before the evidence table. Treat the scores as transparent local heuristics, not independent proof. Explain each flagged item in the context of the collector and live tests; never convert an unknown public WebRTC candidate into a confirmed leak without comparing it with the intended exit.
+When the user supplies an `CLAUDE_SHIELD_BROWSER_REPORT_V1` block, parse its redacted evidence and display the page's overall and category scores before the evidence table. Treat the scores as transparent local heuristics, not independent proof. Explain each flagged item in the context of the collector and live tests; never convert an unknown public WebRTC candidate into a confirmed leak without comparing it with the intended exit.
 
 Return a compact evidence table with these columns: `signal`, `status`, `confidence`, `evidence`, and `action`. Follow it with exactly three short sections:
 

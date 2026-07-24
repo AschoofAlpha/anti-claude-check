@@ -10,7 +10,9 @@
 [![Codex](https://img.shields.io/badge/Codex-skill-111111)](SKILL.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](SKILL.md)
 
-[English](README.md) · [Skill 指令](SKILL.md) · [快速开始](#30-秒安装) · [一键修复脚本](#运行一键安全修复脚本)
+[English](README.md) · [Skill 指令](SKILL.md) · [快速开始](#-30-秒快速开始) · [一键修复脚本](#运行一键安全修复脚本)
+
+> *"最安全的伪装，就是不伪装。用最干净的网络底层隔离，对抗最严厉的 AI 风控审核。"*
 
 **别让 `userID` 设备指纹、`DISABLE_TELEMETRY` 缺失、IPv6/DNS 静默泄漏与 429 限流触顶，毁掉你的 Claude 账号。**
 *拒绝危险的指纹伪造与防关联浏览器，用最干净的 TUN / DNS / 遥测隔离建立 100% 合规安全的系统网络环境。*
@@ -18,31 +20,40 @@
 </div>
 
 > [!IMPORTANT]
-> 💡 **为什么屡屡封号？** 拆解 51 万行 leaked 源码发现，封号是**多维综合判定**：多设备共享账号(极高危) > 429限流触顶(高危) > 假工具/蒸馏检测(高危) > CI自动化滥用(中危) > 客户端改包(中危)。本项目通过只读诊断与最小化硬化，消除真实泄漏与矛盾，不用于绕过人机验证或违反服务条款。
+> 💡 **为什么你的 Claude 账号屡屡封号？—— 拆解 51 万行 Leaked 源码的 5 大风控判定维度**
+> 
+> 封号是风控系统的**多维综合判定**，5 大引发封号的核心因素按风险严重程度排序如下：
+> 1. 🚨 **多设备共享账号 (极高危 - Risk: Critical)**：源码逻辑显示客户端会在 `~/.claude.json` 中自动生成唯一设备特征码 (`userID` / `deviceId`)。同一账号在短期内出现在多个 Device ID 上，伴随着异地出口 IP 漂移、操作系统 (Windows vs macOS) 或时区剧烈变化，直接触发系统“共享/买卖账号”自动封禁。
+> 2. ⚡ **429 速率违规触顶 (高危 - Risk: High)**：后端按 `account_uuid` + `subscription_type` (Pro/Team) + `rate_limit_tier` 进行聚合监控。高频密集发送长 Context 请求将先触发 HTTP 429 配额拦截，若持续触顶，限流关卡会逐步升级，最终导致全站封禁。
+> 3. 🕵️ **假工具注入与反蒸馏检测 (高危 - Risk: High)**：源码内置 `tengu_anti_distill_fake_tool_injection` 标记，当怀疑流量被用于训练竞品模型或通过中间人代理抓包时，服务端会在 System Prompt 中静默注入虚假工具定义。若中转或自动化脚本误触发假工具调用，将被直接打上蒸馏标签。
+> 4. 🤖 **CI 自动化滥用 (中危 - Risk: Medium)**：检测无头 (Headless) 环境、非交互式 Shell、CI/CD 跑批环境变量以及 Token 消耗速度过快的组合特征。
+> 5. 🛠️ **客户端改包与指纹不一致 (中危 - Risk: Medium)**：客户端版本指纹校验失败、User-Agent 格式异常或被第三方防检测浏览器改写。
+> 
+> *本项目通过只读诊断与最小化硬化，帮助你消除真实的物理网络泄漏与配置矛盾，不用于绕过人机验证或违反平台服务条款。*
 
 > [!CAUTION]
 > 💔 **大陆 Claude 用户三大真实血泪痛点**：
-> 1. 💸 **刚充了 Pro / Team 昂贵月费**，正常用不到三天就被“无情封号” (Your account has been suspended)，连申诉邮件都石沉大海。
-> 2. 🌐 **以为代理节点绿了就万事大吉**，结果被物理网卡的直连 DNS、WebRTC 候选地址或未禁用的 IPv6 旁路暗度陈仓暴露了国内 ISP 真实身份。
-> 3. ⚡ **终端用 Claude Code 灵感正涌现，频繁触发 429 限流**，接着连同 `~/.claude.json` 绑定的 Device ID 与遥测缓存一起被打入小黑屋。
+> 1. 💸 **刚充了 Pro / Team 昂贵月费**：正常对话不到三天就被无预警“无情封号” (*Your account has been suspended*)，即使发送申诉邮件也只能收到机器人自动回复，资金与历史对话数据双双丢失。
+> 2. 🌐 **以为代理节点显示绿色就万事大吉**：殊不知物理网卡的直连 DNS 解析、WebRTC 本地与公网 Candidate 候选地址、或未禁用的 IPv6 旁路暗度陈仓暴露了国内 ISP 物理宽带身份，导致 IP 信誉降级与风控标记。
+> 3. ⚡ **终端用 Claude Code 灵感正涌现，频繁触发 429 限流**：由于未配置 `DISABLE_TELEMETRY=1`，遥测文件与 `~/.claude.json` 绑定的固定 Device ID 不断向服务端上报本地轨迹，最终触发连坐打入小黑屋。
 
-## 为什么需要它
+### 🛡️ 为什么你需要 Claude Shield？
 
-代理正常不等于只有“出口 IP 正确”。DNS、WebRTC、IPv6、自动策略组或另一个浏览器仍可能走不同路径；检测网站也可能把字体、RTT、TCP/IP 系统推断或代理出口 IPv6 误判为泄漏。
+| 传统“裸奔”或“指纹伪装”环境 ❌ | Claude Shield 纯净隔离环境 ✅ |
+| :--- | :--- |
+| **设备指纹**：`~/.claude.json` 长期暴露真实的唯一 ID | **设备指纹**：一键抹除重置，甚至可随时隔离备份 |
+| **遥测上传**：后台静默上传全量操作与 429 频控报错 | **遥测上传**：注入 `DISABLE_TELEMETRY=1` 彻底斩断上报 |
+| **DNS/IPv6**：代理显示正常，但物理网卡悄悄直连暴露位置 | **DNS/IPv6**：一键禁用物理 IPv6，全面阻断 WebRTC 泄漏 |
+| **对抗思路**：使用防检测浏览器伪造 UA、硬件，容易被识别 | **对抗思路**：不加掩饰的真实系统，只做最底层的核心网络隔离 |
 
-`claude-shield` 把本地系统证据、Mihomo/Sing-Box 运行时状态、浏览器实测与 Claude Code 遥测整合到同一套流程中，区分真实问题与检测噪声，并只建议最小、可验证的修复。
+## ⚡ 核心能力矩阵
 
-## 能检查什么
-
-| 层级 | 检查范围 |
-| --- | --- |
-| Clash Verge / Mihomo / Sing-Box | 服务模式、系统代理、TUN、`strict-route`、stack、局域网访问、运行时策略选择 |
-| DNS 与路由 | Mihomo DNS、fake-IP、`any:53`、`respect-rules`、物理网卡绕行、跨网站出口 |
-| IPv6 与 WebRTC | 物理 IPv6、Teredo、隧道 IPv6、ICE candidates、Chrome/Edge 策略与扩展状态 |
-| 浏览器一致性 | 内置本地探针检查活动配置的语言、时区、WebGL/GPU (SwiftShader CPU渲染识别)、自动化状态、降精度硬件值 |
-| Claude Code 源码级审计 | `DISABLE_TELEMETRY` 环境变量、`~/.claude.json` 设备指纹 `userID` 重置、`telemetry` 缓存监控、429 日志触顶扫描、5 大封号原因判定 |
-| 多客户端与跨平台 | 支持 Windows (`pwsh`) / macOS 与 Linux (`collect_posix_network.sh`)，识别 Sing-Box、V2RayN、Xray 等客户端 |
-
+- 🔍 **全链路防封体检 (Deep Audit)**
+  不仅看代理软件 (Clash/Mihomo/Sing-Box) 的规则栈，更穿透物理网卡，揪出隐藏的 IPv6 旁路、DNS 污染与 WebRTC 本地真实 IP 泄漏。
+- 🛡️ **Claude 专属环境硬化 (Zero-Trace Remediation)**
+  针对泄露源码的靶向修复。一键静默注入 `DISABLE_TELEMETRY=1` 斩断遥测上报，安全重置 `~/.claude.json` 高危设备指纹，从底层规避 429 连坐限流。
+- 🤖 **AI Agent 原生赋能 (AI-Native Integration)**
+  专为 Codex、Cursor、Windsurf 与 VS Code 设计的跨平台诊断架构。让大模型直接读取你的本地底层网络报告，化身你的专属高级网络安全专家。
 ## 🚀 30 秒快速开始
 
 ### 1. 原生终端独立运行（推荐：零依赖，账号不可用时也可诊断）
@@ -63,7 +74,7 @@ bash ./claude-shield/scripts/collect_posix_network.sh
 pwsh -NoProfile -File .\claude-shield\scripts\remediate_windows_network.ps1
 ```
 
-### 2. AI Agent 助手集成 (Codex / Cursor / Windsurf / VS Code / Claude Code)
+### 2. AI Agent 助手集成 (Codex / Cursor / Windsurf / VS Code)
 
 如果你希望 AI 编程助手读取本地诊断报告并自动给出分析建议：
 
@@ -123,8 +134,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\collect_window
 
 | 宿主 | 调用方式 | 状态 |
 | --- | --- | --- |
-| Codex | `$anti-claude-check` | 支持 |
-| Claude Code | `/anti-claude-check` | 支持，已完成发现测试 |
+| Codex | `$claude-shield` | 支持 |
 | Agent Skills 兼容宿主 | 按宿主规则 | 目录结构兼容 |
 | 其他本地 LLM | 加载 `SKILL.md` 与采集器 JSON | 手动回退 |
 | PowerShell | 7.x / Windows PowerShell 5.1 | 已自检 |

@@ -10,7 +10,9 @@
 [![Codex](https://img.shields.io/badge/Codex-skill-111111)](SKILL.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](SKILL.md)
 
-[简体中文](README.zh-CN.md) · [Skill instructions](SKILL.md) · [Quick Install](#30-second-install) · [MIT License](LICENSE)
+[简体中文](README.zh-CN.md) · [Skill instructions](SKILL.md) · [Quick Install](#-30-second-quick-start) · [MIT License](LICENSE)
+
+> *"The safest disguise is no disguise. Defeat the strictest AI risk controls using pure network isolation."*
 
 **Don't let `userID` device fingerprints, missing `DISABLE_TELEMETRY`, IPv6 leaks, or HTTP 429 rate limit spikes get your Claude account suspended.**
 *No fingerprint spoofing or anti-detect tricks. Secure your environment with clean TUN, DNS, and telemetry isolation.*
@@ -18,31 +20,40 @@
 </div>
 
 > [!IMPORTANT]
-> 💡 **Why accounts get suspended**: Analysis of the 510k-line leaked Claude Code source code reveals multi-dimensional risk evaluation: Multi-device sharing (Very High) > 429 Rate Limit spikes (High) > Anti-distillation fake tool injection (High) > CI Automation abuse (Medium) > Client tampering (Medium). This project provides read-only audit & minimal defensible hardening without bypassing platform terms or bot controls.
+> 💡 **Why is your Claude account repeatedly suspended? — 5 Risk Evaluation Dimensions from 510k-Line Leaked Source Code**
+> 
+> Account suspension is a **multi-dimensional risk evaluation**. The 5 primary causes ranked by severity:
+> 1. 🚨 **Multi-Device Account Sharing (Risk: Critical)**: Source code reveals clients generate a unique device ID (`userID` / `deviceId`) in `~/.claude.json`. When one account appears on multiple Device IDs accompanied by sudden exit IP shifts, OS switching (Windows vs macOS), or timezone mismatches, automatic bans are triggered for credential sharing.
+> 2. ⚡ **429 Rate Limit Spikes (Risk: High)**: Monitored by `account_uuid` + `subscription_type` (Pro/Team) + `rate_limit_tier`. Repeated long-context prompt spikes trigger HTTP 429 quota limits, escalating rate limit tiers to full account bans.
+> 3. 🕵️ **Fake Tool Injection & Anti-Distillation (Risk: High)**: Source code incorporates `tengu_anti_distill_fake_tool_injection`. When distillation or MITM proxying is suspected, false tool definitions are injected into System Prompts; executing these fake tools flags the session for data harvesting.
+> 4. 🤖 **CI Automation Abuse (Risk: Medium)**: Monitored via headless environment flags, non-interactive shells, CI/CD env vars, and token consumption velocity.
+> 5. 🛠️ **Client Tampering & Mismatch (Risk: Medium)**: Triggered by client version checksum failures, malformed User-Agents, or anti-detect browser rewrites.
+> 
+> *This project provides read-only diagnostics & minimal defensible hardening to eliminate real physical network leaks without violating platform Terms of Service.*
 
 > [!CAUTION]
-> 💔 **Top 3 painful experiences for Claude users**:
-> 1. 💸 **Suspended right after paying**: Getting "Your account has been suspended" within days of paying for Pro/Team subscriptions, with zero support response.
-> 2. 🌐 **Hidden network leaks**: Believing a green proxy node status means safety, while physical ISP DNS, WebRTC candidates, or unhandled IPv6 silently expose real location metadata.
-> 3. ⚡ **429 Rate limit cascade**: Hitting repeated 429 quota limits during intense coding sessions, followed by device ID fingerprinting via `~/.claude.json` and telemetry log bans.
+> 💔 **Top 3 Painful Experiences for Claude Users**:
+> 1. 💸 **Suspended Right After Paying**: Getting "Your account has been suspended" within days of paying for Pro/Team subscriptions, receiving automated email rejections with lost funds and chat history.
+> 2. 🌐 **Hidden Physical Network Leaks**: Believing a green proxy status guarantees safety, while physical ISP DNS queries, WebRTC candidate addresses, or unhandled IPv6 silently reveal domestic broadband identity.
+> 3. ⚡ **429 Rate Limit Cascade**: Hitting repeated 429 quota limits during intense coding sessions, where missing `DISABLE_TELEMETRY=1` and fixed `~/.claude.json` Device IDs continuously report local tracking traces until banned.
 
-## Why this exists
+### 🛡️ Why you need Claude Shield
 
-Proxy health is more than an IP address. A setup can show the expected exit while DNS, WebRTC, IPv6, an automatic policy group, or a second browser still exposes a different path. Detector scores can also mistake harmless signals—fonts, RTT, TCP/IP inference, or proxy-owned IPv6—for leaks.
+| Traditional "Naked" or "Spoofed" Setup ❌ | Claude Shield Clean Isolation ✅ |
+| :--- | :--- |
+| **Device Fingerprint**: `~/.claude.json` persistently exposes a real unique ID | **Device Fingerprint**: 1-click wipe & reset, with easy backup/isolation |
+| **Telemetry**: Silent background uploads of all actions & 429 quota errors | **Telemetry**: Injects `DISABLE_TELEMETRY=1` to completely sever reporting |
+| **DNS/IPv6**: Proxy looks green, but physical adapter silently leaks location | **DNS/IPv6**: 1-click physical IPv6 disable, full WebRTC leak block |
+| **Anti-Detection Strategy**: Spoofing UA/Hardware makes you look like a bot | **Anti-Detection Strategy**: Honest real system, relying purely on strict network isolation |
 
-`claude-shield` combines local evidence, Mihomo/Sing-Box runtime state, browser checks, and Claude Code telemetry metrics to separate confirmed leaks from detector noise, then recommends the smallest defensible fix.
+## ⚡ Core Capabilities Matrix
 
-## What it checks
-
-| Layer | Coverage |
-| --- | --- |
-| Clash Verge / Mihomo / Sing-Box | Service mode, system proxy, TUN, `strict-route`, stack, LAN access, runtime policy selection |
-| DNS and routing | Mihomo DNS, fake-IP, `any:53`, `respect-rules`, physical-interface bypass, cross-site exits |
-| IPv6 and WebRTC | Physical IPv6, Teredo, tunnel IPv6, ICE candidates, Chrome/Edge policy and extension state |
-| Browser consistency | Bundled local probe for active-profile languages, timezone, WebGL/GPU (SwiftShader CPU rendering fallback detection), automation state, reduced hardware values |
-| Claude Code source-leak audit | `DISABLE_TELEMETRY` env var, `~/.claude.json` device fingerprint `userID` reset, `telemetry` cache folder monitoring, 429 log spike analysis |
-| Multi-client & Cross-platform | Windows (`pwsh`) / macOS & Linux (`collect_posix_network.sh`), detects Sing-Box, V2RayN, Xray |
-
+- 🔍 **Full-Stack Anti-Ban Audit**
+  Goes beyond proxy rules (Clash/Mihomo/Sing-Box) to inspect physical adapters, exposing hidden IPv6 bypasses, DNS leaks, and WebRTC real IP exposure.
+- 🛡️ **Claude-Specific Environment Hardening**
+  Targeted fixes based on the leaked source code. Silently injects `DISABLE_TELEMETRY=1` to sever tracking, securely resets the high-risk `~/.claude.json` device fingerprint, and circumvents 429 rate limit cascades from the ground up.
+- 🤖 **AI-Native Integration**
+  A cross-platform diagnostic architecture purpose-built for Codex, Cursor, Windsurf, and VS Code. Empower your LLM to read your local network reports and become your personal advanced security expert.
 ## 🚀 30-Second Quick Start
 
 ### 1. Terminal Standalone Mode (Recommended: Zero dependencies)
@@ -63,7 +74,7 @@ bash ./claude-shield/scripts/collect_posix_network.sh
 pwsh -NoProfile -File .\claude-shield\scripts\remediate_windows_network.ps1
 ```
 
-### 2. AI Agent Integration (Codex / Cursor / Windsurf / VS Code / Claude Code)
+### 2. AI Agent Integration (Codex / Cursor / Windsurf / VS Code)
 
 If you want an AI Coding Agent to parse your local diagnostic output and provide tailored recommendations:
 
@@ -123,8 +134,7 @@ The screen shows raw ICE addresses for local comparison. **Copy report for LLM**
 
 | Host | Invocation | Status |
 | --- | --- | --- |
-| Codex | `$anti-claude-check` | Supported |
-| Claude Code | `/anti-claude-check` | Supported and discovery-tested |
+| Codex | `$claude-shield` | Supported |
 | Agent Skills-compatible hosts | Host-specific | Supported layout |
 | Other local LLM agents | Load `SKILL.md` and collector JSON | Manual fallback |
 | PowerShell | 7.x / Windows PowerShell 5.1 | Self-tested |

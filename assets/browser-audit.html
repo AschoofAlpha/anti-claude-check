@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
-  <title>Anti-Claude Check — Browser Audit</title>
+  <title>Claude Shield — Browser Audit</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -114,7 +114,7 @@
 </head>
 <body>
   <main>
-    <div id="eyebrow" class="eyebrow">Anti-Claude Check · Local Tool</div>
+    <div id="eyebrow" class="eyebrow">Claude Shield · Local Tool</div>
     <h1 id="page-heading">Browser privacy audit</h1>
     <p id="intro">Collect and score browser-provided language, timezone, display, hardware, WebGL, automation, and WebRTC signals without changing or spoofing them.</p>
 
@@ -177,8 +177,8 @@
 
     const UI_TEXT = {
       en: {
-        documentTitle: "Anti-Claude Check — Browser Audit",
-        eyebrow: "Anti-Claude Check · Local Tool",
+        documentTitle: "Claude Shield — Browser Audit",
+        eyebrow: "Claude Shield · Local Tool",
         heading: "Browser privacy audit",
         intro: "Collect and score browser-provided language, timezone, display, hardware, WebGL, automation, and WebRTC signals without changing or spoofing them.",
         runLocally: "Run locally",
@@ -219,14 +219,14 @@
         jsonDownloaded: "Redacted JSON downloaded.",
         pngFailed: "PNG generation failed.",
         pngDownloaded: "Redacted PNG report downloaded.",
-        pngEyebrow: "ANTI-CLAUDE CHECK · LOCAL BROWSER REPORT",
+        pngEyebrow: "CLAUDE SHIELD — LOCAL BROWSER REPORT",
         pngTitle: "Privacy & consistency audit",
         priority: "Priority findings",
         disclaimer: "Heuristic local score only. It does not predict Claude approval or replace public IP, DNS, IPv6, header, and route tests."
       },
       "zh-CN": {
-        documentTitle: "反 Claude 检查 — 浏览器审计",
-        eyebrow: "反 Claude 检查 · 本地工具",
+        documentTitle: "Claude Shield — 浏览器审计",
+        eyebrow: "Claude Shield · 本地工具",
         heading: "浏览器隐私审计",
         intro: "读取并评分浏览器提供的语言、时区、显示器、硬件、WebGL、自动化和 WebRTC 信号，不修改或伪造任何值。",
         runLocally: "本地运行",
@@ -267,7 +267,7 @@
         jsonDownloaded: "脱敏 JSON 已下载。",
         pngFailed: "PNG 图片生成失败。",
         pngDownloaded: "脱敏 PNG 图片报告已下载。",
-        pngEyebrow: "反 CLAUDE 检查 · 本地浏览器报告",
+        pngEyebrow: "CLAUDE SHIELD · 本地浏览器报告",
         pngTitle: "隐私与环境一致性审计",
         priority: "优先检查项",
         disclaimer: "仅为本地启发式评分，不能预测 Claude 是否放行，也不能替代公网 IP、DNS、IPv6、请求头和路由测试。"
@@ -611,7 +611,7 @@
         });
       if (currentLanguage === "zh-CN") {
         return [
-          "ANTI_CLAUDE_BROWSER_REPORT_V1",
+          "CLAUDE_SHIELD_BROWSER_REPORT_V1",
           "",
           `本地信号总分：${lastAssessment.overall}/100 — ${localizedScoreLabel(lastAssessment.overall)}`,
           ...categoryLines,
@@ -628,7 +628,7 @@
         ].join("\n");
       }
       return [
-        "ANTI_CLAUDE_BROWSER_REPORT_V1",
+        "CLAUDE_SHIELD_BROWSER_REPORT_V1",
         "",
         `Overall local signal score: ${lastAssessment.overall}/100 — ${lastAssessment.label}`,
         ...categoryLines,
