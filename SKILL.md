@@ -207,6 +207,10 @@ If the user employs a proxy core other than Mihomo (e.g., Xray, Sing-Box native,
 - Do not attempt to read or write Clash-specific YAML configurations.
 - Verify if the client supports a true TUN (virtual network interface) mode. If it only supports system proxy (HTTP/SOCKS), warn the user that DNS and WebRTC leaks are highly probable unless strict browser extensions are used.
 - For DNS, recommend enabling the client's equivalent of `fake-ip` or overriding system DNS to the TUN interface.
+- **Use OS-Level Probes to Verify Isolation (macOS Example)**: Since you cannot read their proprietary config files, verify the actual OS network state:
+  - Run `ifconfig | grep -E "utun|tun"` to ensure a virtual network interface is active.
+  - Run `scutil --dns` to verify if DNS resolution is hijacked (look for `nameserver[0] : 198.18.0.2` or similar fake-ip ranges, and ensure no domestic ISP resolvers leak in the primary resolver array).
+  - Run `netstat -nr -f inet | grep -e "default" -e "0/1" -e "128.0/1"` to verify if the default route or a fake-ip route points to the `utun` interface.
 - Rely on OS-level remediation (e.g., `remediate_windows_network.ps1` / `remediate_posix_network.sh`) to disable telemetry and physical IPv6, and instruct the user to manually configure their specific proxy client according to the physical isolation principles.
 
 ## Report Format

@@ -30,7 +30,7 @@ prompt_confirm() {
 }
 
 # 1. Disable Telemetry
-if prompt_confirm "Set DISABLE_TELEMETRY=1 in ~/.bashrc and ~/.zshrc?"; then
+if prompt_confirm "Set DISABLE_TELEMETRY=1 in ~/.bashrc, ~/.zshrc, and macOS launchctl (for GUI apps)?"; then
     for profile in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
         if [ -f "$profile" ]; then
             if ! grep -q "export DISABLE_TELEMETRY=1" "$profile"; then
@@ -42,6 +42,16 @@ if prompt_confirm "Set DISABLE_TELEMETRY=1 in ~/.bashrc and ~/.zshrc?"; then
             fi
         fi
     done
+    
+    # Apply to macOS GUI apps (Cursor, VS Code) via launchctl
+    if [ "$(uname)" == "Darwin" ]; then
+        if launchctl setenv DISABLE_TELEMETRY 1; then
+            echo -e "${GREEN}[+ SUCCESS] Applied DISABLE_TELEMETRY=1 to macOS launchctl (GUI apps)${NC}"
+            ((REMEDIATIONS_APPLIED++))
+        else
+            echo -e "${RED}[- ERROR] Failed to apply launchctl setenv${NC}"
+        fi
+    fi
 fi
 
 # 2. Reset Device Fingerprint in ~/.claude.json
@@ -93,14 +103,17 @@ fi
 # 4. Disable Physical IPv6
 if prompt_confirm "Disable IPv6 on physical network adapters? (Requires sudo)"; then
     if [ "$(uname)" == "Darwin" ]; then
-        # macOS
-        # Get active physical interfaces (e.g. en0)
-        INTERFACES=$(networksetup -listallhardwareports | awk '/Hardware Port: (Wi-Fi|Ethernet)/ {getline; print $2}')
-        for IFACE in $INTERFACES; do
-            sudo networksetup -setv6off "$IFACE" 2>/dev/null || echo -e "${RED}[- ERROR] Failed to disable IPv6 on $IFACE. It may already be disabled or require different permissions.${NC}"
-            echo -e "${GREEN}[+ SUCCESS] Disabled IPv6 on macOS physical adapter: $IFACE${NC}"
-            ((REMEDIATIONS_APPLIED++))
-        done
+        # macOS: Loop through all network services to avoid locale/language regex failures
+        SERVICES=$(networksetup -listallnetworkservices | grep -v "\*")
+        while IFS= read -r SERVICE; do
+            if [ -n "$SERVICE" ]; then
+                # Attempt to disable IPv6. Suppress errors for services that don't support it (e.g. VPNs).
+                if sudo networksetup -setv6off "$SERVICE" 2>/dev/null; then
+                    echo -e "${GREEN}[+ SUCCESS] Disabled IPv6 on macOS network service: $SERVICE${NC}"
+                    ((REMEDIATIONS_APPLIED++))
+                fi
+            fi
+        done <<< "$SERVICES"
     elif [ "$(uname)" == "Linux" ]; then
         # Linux
         if sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1 && sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1; then
