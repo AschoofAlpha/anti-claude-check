@@ -43,27 +43,42 @@
 | Claude Code 源码级审计 | `DISABLE_TELEMETRY` 环境变量、`~/.claude.json` 设备指纹 `userID` 重置、`telemetry` 缓存监控、429 日志触顶扫描、5 大封号原因判定 |
 | 多客户端与跨平台 | 支持 Windows (`pwsh`) / macOS 与 Linux (`collect_posix_network.sh`)，识别 Sing-Box、V2RayN、Xray 等客户端 |
 
-## 30 秒安装
+## 🚀 30 秒快速开始
 
-### Codex
+### 1. 原生终端独立运行（推荐：零依赖，账号不可用时也可诊断）
 
-```powershell
-New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
-```
-
-使用 `$claude-shield` 调用，或直接提出匹配的隐私审计与防封问题。
-
-### Claude Code
+直接在系统的终端中运行，支持只读诊断与一键安全硬化：
 
 ```powershell
-New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/claude-shield"
+# 1. 克隆仓库
+git clone https://github.com/AschoofAlpha/anti-claude-check.git
+
+# 2. 运行只读诊断 (Windows)
+pwsh -NoProfile -File .\anti-claude-check\scripts\collect_windows_network.ps1
+
+# 2. 运行只读诊断 (macOS / Linux)
+bash ./anti-claude-check/scripts/collect_posix_network.sh
+
+# 3. 运行一键安全硬化与防封修复 (Windows)
+pwsh -NoProfile -File .\anti-claude-check\scripts\remediate_windows_network.ps1
 ```
 
-使用 `/claude-shield` 调用。
+### 2. AI Agent 助手集成 (Codex / Cursor / Windsurf / VS Code / Claude Code)
 
-其他 Agent Skills 宿主保留仓库目录结构并加载 `SKILL.md`。普通本地 LLM 可以把 `SKILL.md` 作为指令，再分析采集器输出的 JSON。
+如果你希望 AI 编程助手读取本地诊断报告并自动给出分析建议：
+
+- **Codex**：
+  ```powershell
+  New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
+  git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
+  ```
+  在对话中使用 `$claude-shield` 调用。
+
+- **Cursor / Windsurf / VS Code (Agent Skills 兼容宿主)**：
+  将仓库克隆或作为 Git Submodule 放入项目的 `.agent/skills/claude-shield` 或个人 Agent 目录，保留 `SKILL.md` 即可。
+
+- **其他 LLM 宿主**：
+  直接加载 `SKILL.md` 作为系统 Prompt 指令，并将脚本输出的 JSON 粘贴给 LLM 诊断。
 
 ## 运行只读采集器
 

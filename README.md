@@ -43,27 +43,42 @@ Proxy health is more than an IP address. A setup can show the expected exit whil
 | Claude Code source-leak audit | `DISABLE_TELEMETRY` env var, `~/.claude.json` device fingerprint `userID` reset, `telemetry` cache folder monitoring, 429 log spike analysis |
 | Multi-client & Cross-platform | Windows (`pwsh`) / macOS & Linux (`collect_posix_network.sh`), detects Sing-Box, V2RayN, Xray |
 
-## 30-second install
+## 🚀 30-Second Quick Start
 
-### Codex
+### 1. Terminal Standalone Mode (Recommended: Zero dependencies)
 
-```powershell
-New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
-```
-
-Invoke with `$claude-shield` or ask a matching privacy-audit question.
-
-### Claude Code
+Run directly in your system terminal for read-only audit & 1-click hardening without needing active AI accounts:
 
 ```powershell
-New-Item -ItemType Directory -Force "$HOME/.claude/skills" | Out-Null
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.claude/skills/claude-shield"
+# 1. Clone repository
+git clone https://github.com/AschoofAlpha/anti-claude-check.git
+
+# 2. Run read-only audit (Windows)
+pwsh -NoProfile -File .\anti-claude-check\scripts\collect_windows_network.ps1
+
+# 2. Run read-only audit (macOS / Linux)
+bash ./anti-claude-check/scripts/collect_posix_network.sh
+
+# 3. Run 1-click security hardening & fix (Windows)
+pwsh -NoProfile -File .\anti-claude-check\scripts\remediate_windows_network.ps1
 ```
 
-Invoke with `/claude-shield`.
+### 2. AI Agent Integration (Codex / Cursor / Windsurf / VS Code / Claude Code)
 
-Other Agent Skills hosts can preserve the repository layout and load `SKILL.md`. Other local LLM agents can load `SKILL.md` as instructions and analyze the collector's JSON output.
+If you want an AI Coding Agent to parse your local diagnostic output and provide tailored recommendations:
+
+- **Codex**:
+  ```powershell
+  New-Item -ItemType Directory -Force "$HOME/.codex/skills" | Out-Null
+  git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/claude-shield"
+  ```
+  Invoke with `$claude-shield` in conversation.
+
+- **Cursor / Windsurf / VS Code (Agent Skills Hosts)**:
+  Clone or add repository as Git Submodule into `.agent/skills/claude-shield` preserving `SKILL.md`.
+
+- **Other LLM Hosts**:
+  Load `SKILL.md` as system instructions and paste collector JSON to the model.
 
 ## Run the read-only collector
 
