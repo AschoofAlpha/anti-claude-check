@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": "1.0.0",
+  "System": {
+    "Hostname": "FAKE-DESKTOP-1234",
+    "OSVersion": "10.0.19045",
+    "CurrentUsername": "fakeuser",
+    "EnvironmentVariables": {
+      "HTTP_PROXY": "http://127.0.0.1:7890"
+    }
+  },
+  "Network": {
+    "ActiveAdapterIPv4Bindings": [
+      "192.168.1.100"
+    ],
+    "LocalDnsServers": [
+      {
+        "Interface": "WLAN",
+        "Servers": [
+          "192.0.2.10",
+          "198.51.100.20"
+        ]
+      }
+    ]
+  },
+  "Browsers": {},
+  "ClaudeCode": {
+    "DisableTelemetryVars": [],
+    "DisableTelemetryActive": false,
+    "ConfigFilePresent": true
+  }
+}

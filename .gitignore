@@ -1,0 +1,13 @@
+reports/
+audit-report*.json
+audit-report*.md
+examples/local-*
+.claude-shield/
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+venv/
+dummy.txt
+current_structure.txt

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claude-shield"
+version = "0.9.0-beta.1"
+description = "Privacy auditor and network configuration checker"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Claude Shield Authors"}
+]
+dependencies = []
+
+[project.scripts]
+claude-shield = "claude_shield.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["claude_shield*"]

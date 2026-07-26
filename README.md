@@ -39,6 +39,14 @@
 > 2. 🌐 **The Illusion of a "Green" Proxy**: You think you're safe because your proxy app shows a stable connection. Little do you know, your physical network adapter's DNS, unhandled IPv6 traffic, or WebRTC loopholes are silently leaking your real domestic ISP identity in the background.
 > 3. ⚡ **Banned in the Middle of Coding**: While deeply immersed in coding with Claude Code, missing background blockers allow your local tracking traces and persistent Device ID to be continuously uploaded. Hit the rate limit just a few times, and your entire account gets dragged into the ban-zone.
 
+> [!IMPORTANT]
+> 🔒 **Claude Shield Security & Modification Boundaries**:
+> To ensure system stability and strict adherence to the Principle of Least Privilege, Claude Shield **DOES NOT AND WILL NOT** support high-risk global modifications.
+> - **We do not modify** global DNS, system proxy settings, routing tables, firewall rules, or VPN configurations.
+> - **We do not disable** physical network adapters or system-wide IPv6.
+> - **We do not intercept** TLS traffic, alter Windows Registry network keys, or spoof browser fingerprints (User-Agent, Canvas, WebGL, etc.).
+> All remediation actions (e.g., `.gitignore`, `.env` template generation) are strictly local, whitelist-based, explicitly previewable, and 100% reversible via atomic transactions.
+
 ### 🛡️ Why you need Claude Shield
 
 | Traditional "Naked" or "Spoofed" Setup ❌ | Claude Shield Clean Isolation ✅ |
