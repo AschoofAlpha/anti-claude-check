@@ -11,3 +11,10 @@ dist/
 venv/
 dummy.txt
 current_structure.txt
+# BEGIN Claude Shield managed rules
+.env
+.env.local
+.env.*.local
+reports/
+.claude-shield/
+# END Claude Shield managed rules

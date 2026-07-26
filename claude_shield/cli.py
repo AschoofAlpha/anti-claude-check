@@ -64,8 +64,8 @@ def cmd_audit(args):
     summary = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'info': 0}
     
     # Example check
-    has_telemetry = redacted_data.get('ClaudeCode', {}).get('DisableTelemetryActive', False)
-    if has_telemetry:
+    telemetry_disabled = redacted_data.get('ClaudeCode', {}).get('DisableTelemetryActive', False)
+    if not telemetry_disabled:
         checks.append(AuditCheck(
             id="telemetry.active",
             title="Telemetry is active",
@@ -79,12 +79,14 @@ def cmd_audit(args):
     else:
         checks.append(AuditCheck(
             id="telemetry.active",
-            title="Telemetry is active",
+            title="Telemetry is disabled",
             category="privacy",
             status="pass",
             severity="info",
-            confidence="confirmed"
+            confidence="confirmed",
+            explanation="Telemetry is successfully disabled."
         ))
+
         summary['info'] += 1
         
     hostname = redacted_data.get('System', {}).get('Hostname', 'unknown')
