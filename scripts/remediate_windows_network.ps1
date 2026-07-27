@@ -1,107 +1,67 @@
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
-    [switch]$DisableTelemetry,
-    [switch]$ResetDeviceFingerprint,
-    [switch]$ClearTelemetryCache,
-    [switch]$DisablePhysicalIPv6,
-    [switch]$All,
-    [switch]$Force
+    [switch]$Apply,
+    [string]$RestoreFrom
 )
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
-Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "  Claude-Shield PowerShell Remediation & Hardening" -ForegroundColor Cyan
-Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host ""
+$variables = @(
+    'DISABLE_TELEMETRY',
+    'DISABLE_ERROR_REPORTING',
+    'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC'
+)
+$backupDir = Join-Path $env:USERPROFILE '.anti-claude-check\backups'
 
-$remediationsApplied = 0
-
-# 1. Disable Telemetry
-if ($All -or $DisableTelemetry -or (-not $Force -and (Read-Host "Set DISABLE_TELEMETRY=1 in User Environment? (y/N)") -eq 'y')) {
-    if ($PSCmdlet.ShouldProcess("User Environment Variable: DISABLE_TELEMETRY", "Set value to 1")) {
-        [Environment]::SetEnvironmentVariable('DISABLE_TELEMETRY', '1', 'User')
-        $env:DISABLE_TELEMETRY = '1'
-        Write-Host "[+ SUCCESS] Set DISABLE_TELEMETRY=1 in User environment." -ForegroundColor Green
-        $remediationsApplied++
-    }
+if ($Apply -and $RestoreFrom) {
+    throw 'Use either -Apply or -RestoreFrom, not both.'
 }
 
-# 2. Reset Device Fingerprint in ~/.claude.json
-$claudeJsonPath = Join-Path $env:USERPROFILE '.claude.json'
-if (Test-Path -LiteralPath $claudeJsonPath -PathType Leaf) {
-    if ($All -or $ResetDeviceFingerprint -or (-not $Force -and (Read-Host "Backup ~/.claude.json and reset userID/deviceId fingerprint? (y/N)") -eq 'y')) {
-        if ($PSCmdlet.ShouldProcess($claudeJsonPath, "Backup and remove userID/deviceId fields")) {
-            $bakPath = "$claudeJsonPath.bak"
-            Copy-Item -LiteralPath $claudeJsonPath -Destination $bakPath -Force
-            Write-Host "[i] Created backup at $bakPath" -ForegroundColor Gray
-
-            try {
-                $rawJson = [System.IO.File]::ReadAllText($claudeJsonPath)
-                $jsonObj = $rawJson | ConvertFrom-Json
-                $modified = $false
-                if ($null -ne $jsonObj.PSObject.Properties['userID']) {
-                    $jsonObj.PSObject.Properties.Remove('userID')
-                    $modified = $true
-                }
-                if ($null -ne $jsonObj.PSObject.Properties['deviceId']) {
-                    $jsonObj.PSObject.Properties.Remove('deviceId')
-                    $modified = $true
-                }
-                if ($modified) {
-                    $newJson = $jsonObj | ConvertTo-Json -Depth 10
-                    [System.IO.File]::WriteAllText($claudeJsonPath, $newJson, [System.Text.Encoding]::UTF8)
-                    Write-Host "[+ SUCCESS] Reset device fingerprint fields in $claudeJsonPath" -ForegroundColor Green
-                    $remediationsApplied++
-                } else {
-                    Write-Host "[i] No userID or deviceId found in $claudeJsonPath" -ForegroundColor Yellow
-                }
-            } catch {
-                Write-Host "[- ERROR] Failed to update ${claudeJsonPath}: $_" -ForegroundColor Red
-            }
+if ($RestoreFrom) {
+    $resolvedBackupDir = [System.IO.Path]::GetFullPath($backupDir + [System.IO.Path]::DirectorySeparatorChar)
+    $resolvedBackup = [System.IO.Path]::GetFullPath($RestoreFrom)
+    if (-not $resolvedBackup.StartsWith($resolvedBackupDir, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Restore file must be inside $backupDir"
+    }
+    if (-not (Test-Path -LiteralPath $resolvedBackup -PathType Leaf)) {
+        throw "Backup file not found: $resolvedBackup"
+    }
+    $backup = Get-Content -LiteralPath $resolvedBackup -Raw | ConvertFrom-Json
+    if ($PSCmdlet.ShouldProcess('Claude Code user privacy environment variables', "Restore values from $resolvedBackup")) {
+        foreach ($name in $variables) {
+            $property = $backup.PSObject.Properties[$name]
+            $value = if ($null -eq $property) { $null } else { $property.Value }
+            [Environment]::SetEnvironmentVariable($name, $value, 'User')
         }
+        Write-Host "Restored user environment from $resolvedBackup" -ForegroundColor Green
     }
+    exit 0
 }
 
-# 3. Clear Telemetry Cache
-$telemetryDir = Join-Path (Join-Path $env:USERPROFILE '.claude') 'telemetry'
-if (Test-Path -LiteralPath $telemetryDir -PathType Container) {
-    if ($All -or $ClearTelemetryCache -or (-not $Force -and (Read-Host "Clear telemetry cache in ~/.claude/telemetry/? (y/N)") -eq 'y')) {
-        if ($PSCmdlet.ShouldProcess($telemetryDir, "Delete cached telemetry files")) {
-            try {
-                $files = Get-ChildItem -LiteralPath $telemetryDir -File -Recurse -ErrorAction SilentlyContinue
-                $count = $files.Count
-                Remove-Item -Path "$telemetryDir\*" -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Host "[+ SUCCESS] Cleared $count cached telemetry files from $telemetryDir" -ForegroundColor Green
-                $remediationsApplied++
-            } catch {
-                Write-Host "[- ERROR] Failed to clear telemetry cache: $_" -ForegroundColor Red
-            }
-        }
-    }
+if (-not $Apply) {
+    Write-Host 'Plan only: set these documented Claude Code user environment variables to 1:' -ForegroundColor Cyan
+    $variables | ForEach-Object { Write-Host "  $_=1" }
+    Write-Host 'No changes made. Re-run with -Apply after explicit approval; use -WhatIf to preview.' -ForegroundColor Yellow
+    exit 0
 }
 
-# 4. Disable Physical IPv6
-if ($DisablePhysicalIPv6 -or ($All -and -not $Force -and (Read-Host "Disable IPv6 on physical network adapters? (Requires Administrator) (y/N)") -eq 'y')) {
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if (-not $isAdmin) {
-        Write-Host "[- WARNING] Administrator privileges required to disable physical IPv6. Please relaunch PowerShell as Administrator." -ForegroundColor Yellow
-    } else {
-        if (Get-Command Disable-NetAdapterBinding -ErrorAction SilentlyContinue) {
-            $physicalAdapters = Get-NetAdapter -ErrorAction SilentlyContinue | Where-Object {
-                $_.Status -eq 'Up' -and $_.HardwareInterface -eq $true -and $_.Name -notmatch '(?i)mihomo|clash|wintun|wireguard|tap|vpn'
-            }
-            foreach ($adapter in $physicalAdapters) {
-                if ($PSCmdlet.ShouldProcess($adapter.Name, "Disable-NetAdapterBinding -ComponentID ms_tcpip6")) {
-                    Disable-NetAdapterBinding -Name $adapter.Name -ComponentID ms_tcpip6 -Confirm:$false
-                    Write-Host "[+ SUCCESS] Disabled IPv6 on physical adapter: $($adapter.Name)" -ForegroundColor Green
-                    $remediationsApplied++
-                }
-            }
-        }
-    }
+if (-not $PSCmdlet.ShouldProcess('Claude Code user privacy environment variables', 'Back up current values and set documented opt-outs to 1')) {
+    exit 0
 }
 
-Write-Host ""
-Write-Host "Remediation complete. Total actions taken: $remediationsApplied" -ForegroundColor Cyan
+New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+$backup = [ordered]@{}
+foreach ($name in $variables) {
+    $backup[$name] = [Environment]::GetEnvironmentVariable($name, 'User')
+}
+$backupPath = Join-Path $backupDir ("privacy-env-{0}-{1}.json" -f (Get-Date -Format 'yyyyMMdd-HHmmss'), [guid]::NewGuid().ToString('N').Substring(0, 8))
+$backup | ConvertTo-Json | Set-Content -LiteralPath $backupPath -Encoding UTF8
+
+foreach ($name in $variables) {
+    [Environment]::SetEnvironmentVariable($name, '1', 'User')
+    Set-Item -LiteralPath "Env:$name" -Value '1'
+}
+
+Write-Host "Applied documented privacy opt-outs. Backup: $backupPath" -ForegroundColor Green
+Write-Host "Rollback: pwsh -NoProfile -File `"$PSCommandPath`" -RestoreFrom `"$backupPath`"" -ForegroundColor Cyan

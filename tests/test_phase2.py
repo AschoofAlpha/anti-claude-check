@@ -7,8 +7,21 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from claude_shield.schema import validate_report, SchemaValidationError
+from claude_shield.cli import _collector_checks
 
 class TestPhase2(unittest.TestCase):
+    def test_privacy_controls_require_value_one(self):
+        checks = _collector_checks({"ClaudeCode": {
+            "DisableTelemetryVars": [{"Scope": "User", "Value": "0"}],
+            "DisableErrorReportingVars": [{"Scope": "User", "Value": "false"}],
+            "DisableNonessentialTrafficVars": [],
+        }})
+        self.assertTrue(all(check.status == "unknown" for check in checks[:3]))
+
+    def test_broad_privacy_control_covers_metrics_and_errors(self):
+        checks = _collector_checks({"ClaudeCode": {"DisableNonessentialTrafficActive": True}})
+        self.assertTrue(all(check.status == "pass" for check in checks[:3]))
+
     def test_schema_valid(self):
         report = {
             "schema_version": "1.0.0",

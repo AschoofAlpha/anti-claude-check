@@ -3,8 +3,11 @@
   "type": "object",
   "properties": {
     "version": { "type": "string" },
+    "reportVersion": { "type": "integer" },
     "browser_env": { "type": "string" },
     "timestamp": { "type": "string" },
+    "assessment": { "type": "object" },
+    "evidence": { "type": "object" },
     "findings": {
       "type": "array",
       "items": {
@@ -15,13 +18,19 @@
           "category": { "type": "string" },
           "status": { "enum": ["pass", "fail", "warning", "skipped", "unknown"] },
           "severity": { "enum": ["critical", "high", "medium", "low", "info"] },
-          "confidence": { "enum": ["confirmed", "high", "possible", "unknown"] },
+          "confidence": { "enum": ["confirmed", "probable", "possible", "unknown"] },
           "explanation": { "type": "string" },
           "evidence": { "type": "array" }
         },
         "required": ["id", "title", "category", "status", "severity", "confidence"]
       }
-    }
+    },
+    "checks": { "$ref": "#/properties/findings" }
   },
-  "required": ["version", "timestamp", "findings"]
+  "required": ["version", "timestamp"],
+  "oneOf": [
+    { "required": ["findings"] },
+    { "required": ["checks"] }
+  ],
+  "additionalProperties": true
 }

@@ -3,19 +3,32 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "claude-shield"
-version = "0.9.0-beta.1"
-description = "Privacy auditor and network configuration checker"
+name = "anti-claude-check"
+version = "1.1.0b1"
+description = "Local privacy and proxy consistency audit skill"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
-    {name = "Claude Shield Authors"}
+    {name = "Anti Claude Check Authors"}
 ]
 dependencies = []
 
 [project.scripts]
+anti-claude-check = "claude_shield.cli:main"
 claude-shield = "claude_shield.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["claude_shield*"]
+
+[tool.setuptools.data-files]
+"share/anti-claude-check" = ["SKILL.md", "README.md", "README.zh-CN.md", "LICENSE", "anti-claude-check.ps1", "anti-claude-check.sh", "claude-shield.ps1", "claude-shield.sh"]
+"share/anti-claude-check/agents" = ["agents/openai.yaml"]
+"share/anti-claude-check/assets" = ["assets/browser-audit.html"]
+"share/anti-claude-check/schemas" = ["schemas/browser-audit.schema.json"]
+"share/anti-claude-check/scripts" = [
+    "scripts/collect_posix_network.sh",
+    "scripts/collect_windows_network.ps1",
+    "scripts/remediate_posix_network.sh",
+    "scripts/remediate_windows_network.ps1",
+]

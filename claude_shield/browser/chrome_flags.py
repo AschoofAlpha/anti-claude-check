@@ -1,24 +1,10 @@
-# Allowed and Prohibited Chrome Flags
-
-ALLOWED_FLAGS = [
+DEFAULT_FLAGS = [
     "--no-first-run",
     "--no-default-browser-check",
     "--disable-sync",
-    "--disable-background-networking",
-    "--disable-default-apps",
-    "--disable-extensions",
-    "--disable-client-side-phishing-detection",
-    "--disable-component-update",
-    "--password-store=basic",
-    "--use-mock-keychain",
-    "--disable-features=Translate",
-    "--metrics-recording-only",
-    "--safebrowsing-disable-auto-update",
-    "--disable-domain-reliability",
-    "--disable-ipc-flooding-protection",
-    "--disable-popup-blocking",
-    "--disable-prompt-on-repost"
 ]
+
+ALLOWED_FLAGS = DEFAULT_FLAGS + ["--disable-extensions"]
 
 PROHIBITED_FLAGS = [
     "--disable-blink-features=AutomationControlled",
@@ -36,10 +22,10 @@ PROHIBITED_FLAGS = [
 ]
 
 def sanitize_flags(flags: list) -> list:
-    """Removes prohibited flags and returns the sanitized list."""
+    """Keep local file URLs and explicitly allowed browser flags."""
     sanitized = []
     for flag in flags:
         flag_base = flag.split('=')[0]
-        if flag not in PROHIBITED_FLAGS and flag_base not in PROHIBITED_FLAGS:
+        if flag.startswith("file://") or flag in ALLOWED_FLAGS or flag_base in DEFAULT_FLAGS:
             sanitized.append(flag)
     return sanitized

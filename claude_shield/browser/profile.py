@@ -6,12 +6,12 @@ import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
+from .. import __version__
+
 from .lifecycle import is_profile_in_use
 
 def get_browser_profiles_dir() -> Path:
     return Path.home() / '.claude-shield' / 'browser-profiles'
-
-CLAUDE_SHIELD_VERSION = "0.1.0"
 
 def get_profile_dir(profile_id: str) -> Path:
     return get_browser_profiles_dir() / profile_id
@@ -52,7 +52,7 @@ def create_profile(browser_info: Dict[str, Any]) -> str:
         "schema_version": "1.0",
         "profile_id": profile_id,
         "created_at": datetime.datetime.utcnow().isoformat() + "Z",
-        "claude_shield_version": CLAUDE_SHIELD_VERSION,
+        "tool_version": __version__,
         "browser_path_pseudonym": os.path.basename(browser_info.get("path", "unknown")),
         "browser_version": browser_info.get("version", "unknown"),
         "status": "active",

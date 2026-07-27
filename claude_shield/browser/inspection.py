@@ -64,9 +64,9 @@ def calculate_risk(report: Dict[str, Any]) -> str:
     if report.get("in_use"):
         # Not really a risk for the profile contents, but a blocker for operations
         pass
-    if report.get("sync_configuration_detected"):
-        return "Medium"
     if report.get("proxy_extension_suspected"):
         return "High"
+    if report.get("sync_configuration_detected"):
+        return "Medium"
         
     return "Info" if (report.get("cookie_store_present") or report.get("extension_count", 0) > 0) else "Pass"

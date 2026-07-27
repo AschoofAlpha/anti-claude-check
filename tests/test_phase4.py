@@ -13,6 +13,7 @@ from claude_shield.scanning.entropy import is_high_entropy
 from claude_shield.checks.credentials import run_credential_scan
 from claude_shield.checks.git_security import run_git_security_check
 from claude_shield.browser_import import import_browser_report
+from claude_shield.models import to_dict
 from claude_shield.checks.wsl import check_wsl
 from claude_shield.checks.docker import check_docker
 
@@ -135,6 +136,7 @@ class TestPhase4BrowserImport(unittest.TestCase):
             "version": "1.0.0",
             "browser_env": "chrome",
             "timestamp": "2026-07-25T10:00:00Z",
+            "assessment": {"overall": 72, "scores": {"privacy": 80, "region": None, "bad": 101}},
             "findings": [
                 {
                     "id": "network.webrtc",
@@ -143,7 +145,7 @@ class TestPhase4BrowserImport(unittest.TestCase):
                     "status": "fail",
                     "severity": "medium",
                     "confidence": "confirmed",
-                    "evidence": []
+                    "evidence": [{"type": "browser", "description": "Observed 192.0.2.10", "data": {"address": "192.0.2.10"}}]
                 }
             ]
         }
@@ -155,6 +157,9 @@ class TestPhase4BrowserImport(unittest.TestCase):
         self.assertEqual(len(parsed.checks), 1)
         # Severity should be upgraded to high per browser import rules
         self.assertEqual(parsed.checks[0].severity, "high")
+        self.assertEqual(parsed.score, 72)
+        self.assertEqual(parsed.score_categories, {"privacy": 80, "region": None})
+        self.assertNotIn("192.0.2.10", json.dumps(to_dict(parsed)))
         
     def test_import_invalid_size(self):
         path = self.workspace / "large.json"

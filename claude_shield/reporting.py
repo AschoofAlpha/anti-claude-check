@@ -1,11 +1,16 @@
 import json
 from .models import AuditReport, to_dict
 
-def render_terminal(report: AuditReport):
-    print("=== Claude Shield Audit Report ===")
+def render_terminal(report: AuditReport, show_evidence: bool = False):
+    print("=== Anti Claude Check Audit Report ===")
     print(f"Generated At: {report.generated_at}")
     print(f"Platform: {report.platform.os} {report.platform.version}")
     
+    if report.score is not None:
+        print(f"Local Browser Score: {report.score}/100")
+        for name, value in report.score_categories.items():
+            print(f"  {name}: {'not scored' if value is None else f'{value}/100'}")
+
     summary = report.summary
     print("\n[ Summary ]")
     print(f"  Critical: {summary.get('critical', 0)}")
@@ -23,6 +28,11 @@ def render_terminal(report: AuditReport):
             print(f"{color}[{check.severity.upper()}] {check.title}{reset}")
             print(f"  - Status: {check.status}")
             print(f"  - Explanation: {check.explanation}")
+            if check.recommendation:
+                print(f"  - Recommendation: {check.recommendation}")
+            if show_evidence:
+                for item in check.evidence:
+                    print(f"  - Evidence: {item.description}: {item.data}")
     
     print("\n[ Privacy ]")
     print(f"  Redaction Enabled: {report.privacy.redaction_enabled}")
@@ -33,10 +43,14 @@ def render_json(report: AuditReport) -> str:
 
 def render_markdown(report: AuditReport) -> str:
     lines = []
-    lines.append("# Claude Shield Audit Report")
+    lines.append("# Anti Claude Check Audit Report")
     lines.append(f"**Generated At**: {report.generated_at}")
     lines.append(f"**Tool Version**: {report.tool_version}")
     lines.append(f"**Schema Version**: {report.schema_version}")
+    if report.score is not None:
+        lines.append(f"**Local Browser Score**: {report.score}/100")
+        for name, value in report.score_categories.items():
+            lines.append(f"- {name}: {'not scored' if value is None else f'{value}/100'}")
     lines.append("")
     lines.append("## Platform")
     lines.append(f"- OS: {report.platform.os}")

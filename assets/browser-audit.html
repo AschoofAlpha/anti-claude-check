@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
-  <title>Claude Shield — Browser Audit</title>
+  <title>Anti Claude Check — Browser Audit</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -114,7 +114,7 @@
 </head>
 <body>
   <main>
-    <div id="eyebrow" class="eyebrow">Claude Shield · Local Tool</div>
+    <div id="eyebrow" class="eyebrow">Anti Claude Check · Local Tool</div>
     <h1 id="page-heading">Browser privacy audit</h1>
     <p id="intro">Collect and score browser-provided language, timezone, display, hardware, WebGL, automation, and WebRTC signals without changing or spoofing them.</p>
 
@@ -177,8 +177,8 @@
 
     const UI_TEXT = {
       en: {
-        documentTitle: "Claude Shield — Browser Audit",
-        eyebrow: "Claude Shield · Local Tool",
+        documentTitle: "Anti Claude Check — Browser Audit",
+        eyebrow: "Anti Claude Check · Local Tool",
         heading: "Browser privacy audit",
         intro: "Collect and score browser-provided language, timezone, display, hardware, WebGL, automation, and WebRTC signals without changing or spoofing them.",
         runLocally: "Run locally",
@@ -225,8 +225,8 @@
         disclaimer: "Heuristic local score only. It does not predict Claude approval or replace public IP, DNS, IPv6, header, and route tests."
       },
       "zh-CN": {
-        documentTitle: "Claude Shield — 浏览器审计",
-        eyebrow: "Claude Shield · 本地工具",
+        documentTitle: "反 Claude 检查 — 浏览器审计",
+        eyebrow: "反 Claude 检查 · 本地工具",
         heading: "浏览器隐私审计",
         intro: "读取并评分浏览器提供的语言、时区、显示器、硬件、WebGL、自动化和 WebRTC 信号，不修改或伪造任何值。",
         runLocally: "本地运行",
@@ -434,10 +434,10 @@
     function scoreAudit(result, target = "none") {
       const scores = { privacy: 100, browser: 100, completeness: 100, region: target === "none" ? null : 100 };
       const reportFindings = [];
-      const add = (level, signal, evidence, recommendation) => reportFindings.push({ level, signal, evidence, recommendation });
+      const add = (category, level, signal, evidence, recommendation) => reportFindings.push({ category, level, signal, evidence, recommendation });
       const deduct = (area, points, level, signal, evidence, recommendation) => {
         scores[area] = Math.max(0, scores[area] - points);
-        add(level, signal, evidence, recommendation);
+        add(area, level, signal, evidence, recommendation);
       };
 
       if (result.browser.webdriver === true) {
@@ -470,16 +470,16 @@
 
       const classes = new Set(result.webrtc.candidates.map(candidate => candidate.classification));
       if (classes.has("private-ipv4")) {
-        deduct("privacy", 25, "must-fix", "Local IPv4 exposure", "A raw private IPv4 ICE candidate was visible.", "Confirm in an external WebRTC test, then review browser policy, extensions, and TUN routing before making changes.");
+        deduct("completeness", 10, "manual", "Local IPv4 exposure", "A raw private IPv4 ICE candidate was visible.", "Confirm in an external WebRTC test and identify the interface before changing browser policy, extensions, or TUN routing.");
       }
       if (classes.has("local-ipv6")) {
-        deduct("privacy", 25, "must-fix", "Local IPv6 exposure", "A local IPv6 ICE candidate was visible.", "Confirm whether it belongs to the physical uplink before changing IPv6 or tunnel settings.");
+        deduct("completeness", 10, "manual", "Local IPv6 exposure", "A local IPv6 ICE candidate was visible.", "Confirm whether it belongs to the physical uplink before changing IPv6 or tunnel settings.");
       }
       if (classes.has("public")) {
         deduct("completeness", 10, "manual", "Public WebRTC candidate", "A public ICE candidate was returned by STUN.", "Compare it with the intended public proxy exit; this page cannot determine ownership or whether it is a bypass.");
       }
       if (classes.has("mdns") && !classes.has("private-ipv4") && !classes.has("local-ipv6")) {
-        add("leave-alone", "Local-address masking", "Local host candidates use mDNS names.", "No local-address change is suggested from this signal.");
+        add("privacy", "leave-alone", "Local-address masking", "Local host candidates use mDNS names.", "No local-address change is suggested from this signal.");
       }
       if (result.webrtc.status !== "complete") {
         deduct("completeness", 20, "manual", "WebRTC result incomplete", `WebRTC status is ${result.webrtc.status}.`, "Run the test again and cross-check with a live WebRTC detector.");
@@ -498,7 +498,7 @@
       }
 
       if (!reportFindings.length) {
-        add("leave-alone", "Local browser signals", "No high-confidence contradiction was found in the collected fields.", "Keep the current browser settings and complete the external IP, DNS, and header checks.");
+        add("browser", "leave-alone", "Local browser signals", "No high-confidence contradiction was found in the collected fields.", "Keep the current browser settings and complete the external IP, DNS, and header checks.");
       }
 
       const scoreValues = Object.values(scores).filter(value => value !== null);
@@ -597,7 +597,32 @@
     }
 
     function exportPayload() {
-      return { reportVersion: 1, assessment: lastAssessment, evidence: redacted(lastResult) };
+      const findings = lastAssessment.findings.map((rawFinding, index) => {
+        const finding = localizedFinding(rawFinding);
+        const status = finding.level === "must-fix" ? "fail" : finding.level === "optional" ? "warning" : finding.level === "manual" ? "unknown" : "pass";
+        const severity = finding.level === "must-fix" ? "high" : finding.level === "optional" ? "medium" : "info";
+        const idPart = rawFinding.signal.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "");
+        return {
+          id: `browser.${idPart || index}`,
+          title: finding.signal,
+          category: rawFinding.category || "browser",
+          status,
+          severity,
+          confidence: finding.level === "manual" ? "unknown" : "possible",
+          explanation: finding.evidence,
+          recommendation: finding.recommendation,
+          evidence: [{ type: "browser", description: finding.evidence, data: { signal: rawFinding.signal } }]
+        };
+      });
+      return {
+        version: "1.0.0",
+        reportVersion: 1,
+        browser_env: navigator.userAgentData?.brands?.map(item => item.brand).join(", ") || navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        assessment: lastAssessment,
+        evidence: redacted(lastResult),
+        findings
+      };
     }
 
     function buildLlmReport() {
@@ -611,7 +636,7 @@
         });
       if (currentLanguage === "zh-CN") {
         return [
-          "CLAUDE_SHIELD_BROWSER_REPORT_V1",
+          "ANTI_CLAUDE_BROWSER_REPORT_V1",
           "",
           `本地信号总分：${lastAssessment.overall}/100 — ${localizedScoreLabel(lastAssessment.overall)}`,
           ...categoryLines,
@@ -624,11 +649,11 @@
           JSON.stringify(exportPayload(), null, 2),
           "```",
           "",
-          "给 LLM 的指令：使用 claude-shield Skill，先显示评分和证据表，再输出“必须处理”“可选一致性”“保持不动”。该评分仅为启发式判断；得出结论前必须结合公网 IP、DNS、IPv6、Accept-Language 和路由实测。"
+          "给 LLM 的指令：使用 anti-claude-check Skill，先显示评分和证据表，再输出“必须处理”“可选一致性”“保持不动”。该评分仅为启发式判断；得出结论前必须结合公网 IP、DNS、IPv6、Accept-Language 和路由实测。"
         ].join("\n");
       }
       return [
-        "CLAUDE_SHIELD_BROWSER_REPORT_V1",
+        "ANTI_CLAUDE_BROWSER_REPORT_V1",
         "",
         `Overall local signal score: ${lastAssessment.overall}/100 — ${lastAssessment.label}`,
         ...categoryLines,
@@ -641,7 +666,7 @@
         JSON.stringify(exportPayload(), null, 2),
         "```",
         "",
-        "LLM instruction: Use the claude-shield skill. Show the score and an evidence table, then Must fix, Optional consistency, and Leave alone. Treat this score as heuristic and require live public-IP, DNS, IPv6, Accept-Language, and routing evidence before concluding."
+        "LLM instruction: Use the anti-claude-check skill. Show the score and an evidence table, then Must fix, Optional consistency, and Leave alone. Treat this score as heuristic and require live public-IP, DNS, IPv6, Accept-Language, and routing evidence before concluding."
       ].join("\n");
     }
 
@@ -869,20 +894,33 @@
 
     function renderCollectorSummary(data) {
       collectorSummary.hidden = false;
-      const c = data.ClaudeCode || {};
-      const sys = data.System || {};
-      const mihomo = data.Mihomo || {};
+      const snapshot = data && typeof data === "object" ? data : {};
+      const c = snapshot.ClaudeCode && typeof snapshot.ClaudeCode === "object" ? snapshot.ClaudeCode : {};
+      const sys = snapshot.System && typeof snapshot.System === "object" ? snapshot.System : {};
+      const mihomo = snapshot.Mihomo && typeof snapshot.Mihomo === "object" ? snapshot.Mihomo : {};
+      const card = document.createElement("div");
+      card.style.cssText = "background:#0d1529;border-left:4px solid var(--accent);padding:14px 16px;border-radius:8px";
 
-      let html = `<div style="background: #0d1529; border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px;">`;
-      html += `<strong>Imported Snapshot (Schema v${data.SchemaVersion || 'unknown'})</strong><br>`;
-      html += `• <strong>System Proxy:</strong> ${sys.SystemProxy?.Enabled ? 'Enabled' : 'Disabled'}<br>`;
-      html += `• <strong>TUN Mode:</strong> ${mihomo.TunEnabled ? 'Enabled (' + (mihomo.TunStack || 'default') + ')' : 'Disabled'}<br>`;
-      html += `• <strong>Claude Telemetry:</strong> ${c.DisableTelemetryActive ? '<span style="color:var(--ok)">Disabled (DISABLE_TELEMETRY=1)</span>' : '<span style="color:var(--danger)">Active (Not disabled)</span>'}<br>`;
-      html += `• <strong>Device Fingerprint:</strong> ${c.HasUserIdFingerprint ? '<span style="color:var(--warn)">userID present in ~/.claude.json</span>' : '<span style="color:var(--ok)">Clean (No userID field)</span>'}<br>`;
-      html += `• <strong>Telemetry Cache:</strong> ${c.TelemetryFileCount || 0} files (${Math.round((c.TelemetrySizeBytes || 0) / 1024)} KB)<br>`;
-      html += `• <strong>HTTP 429 Events:</strong> ${c.RateLimit429EventsDetected || 0} occurrences detected`;
-      html += `</div>`;
-      collectorSummary.innerHTML = html;
+      const heading = document.createElement("strong");
+      heading.textContent = `Imported Snapshot (Schema v${String(snapshot.SchemaVersion ?? "unknown")})`;
+      card.append(heading);
+
+      const addRow = (label, value) => {
+        const row = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = `${label}: `;
+        row.append("• ", name, value);
+        card.append(row);
+      };
+      const observed = value => value === true ? "Enabled" : value === false ? "Disabled" : "Manual check required";
+      const optOut = (value, variable) => value === true ? `${variable}=1 active` : `${variable}=1 not verified`;
+
+      addRow("System Proxy", observed(sys.SystemProxy?.Enabled));
+      addRow("TUN Mode", observed(mihomo.TunEnabled));
+      addRow("Metrics opt-out", optOut(c.DisableTelemetryActive, "DISABLE_TELEMETRY"));
+      addRow("Error-reporting opt-out", optOut(c.DisableErrorReportingActive, "DISABLE_ERROR_REPORTING"));
+      addRow("Non-essential traffic opt-out", optOut(c.DisableNonessentialTrafficActive, "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"));
+      collectorSummary.replaceChildren(card);
     }
 
     uiLanguage.value = currentLanguage;

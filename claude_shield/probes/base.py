@@ -47,7 +47,7 @@ def run_probes(custom_endpoint: str = None, timeout: int = 5):
         
     for ep in eps:
         ctx = ProbeContext(timeout=timeout, endpoint=ep)
-        res = check_egress_consistency(ctx)
+        res = check_egress_consistency(ctx, is_custom=custom_endpoint is not None)
         results.append(res)
         
     results.append(check_dns_consistency())

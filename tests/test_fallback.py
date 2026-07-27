@@ -10,7 +10,7 @@ class TestFallback(unittest.TestCase):
         if os.name != 'nt':
             self.skipTest("PowerShell test only runs on Windows")
             
-        script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'claude-shield.ps1'))
+        script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'anti-claude-check.ps1'))
         
         # We can't easily mock python globally in PS without a lot of setup,
         # but we can check if it runs remediate successfully without python if we bypass the python call?
@@ -26,10 +26,12 @@ class TestFallback(unittest.TestCase):
             ['pwsh', '-NoProfile', '-File', script_path, 'remediate'],
             env=env,
             capture_output=True,
-            text=True
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("unsupported", result.stdout.lower() + result.stderr.lower())
+        self.assertIn("requires python", result.stdout.lower() + result.stderr.lower())
 
 if __name__ == '__main__':
     unittest.main()

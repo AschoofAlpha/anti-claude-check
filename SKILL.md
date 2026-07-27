@@ -1,11 +1,11 @@
 ---
-name: claude-shield
-description: Audit and repair a local Windows, macOS, Linux, Clash Verge/Mihomo, Sing-Box, Google Chrome, and Microsoft Edge setup for service mode, routing, DNS, WebRTC, IPv6, IP reputation, timezone, language, Claude Code DISABLE_TELEMETRY, ~/.claude.json device fingerprints, 429 rate limit log risks, and minimal privacy-hardening recommendations without fingerprint spoofing or platform-evasion guidance.
+name: anti-claude-check
+description: Audit a local Windows proxy and browser setup, with limited macOS/Linux environment collection, for routing, DNS, WebRTC, IPv6, IP reputation, timezone, language, browser consistency, and documented Claude Code privacy controls. Use for Clash Verge/Mihomo or other proxy-leak diagnosis, scored browser reports, ChaIP or BrowserLeaks interpretation, Chrome/Edge comparison, and minimal privacy hardening without fingerprint spoofing or platform-evasion guidance.
 ---
 
-# Claude Shield (克劳德安全盾)
+# 反 Claude 检查
 
-Audit privacy leaks, contradictory network signals, and Claude Code telemetry/device ID risks without trying to defeat platform safeguards. Prefer stable, ordinary browser behavior and the smallest defensible configuration change.
+Audit privacy leaks, contradictory network signals, and documented Claude Code privacy controls without trying to defeat platform safeguards. Prefer stable, ordinary browser behavior and the smallest defensible configuration change.
 
 ## Safety Boundary
 
@@ -32,20 +32,20 @@ Keep the bundled collector, `assets/browser-audit.html`, and live network checks
 
 Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled files from that directory rather than from the current project or shell working directory.
 
-- **Codex:** install the folder as `$CODEX_HOME/skills/claude-shield` or `~/.codex/skills/claude-shield`, then invoke `$claude-shield` or ask a matching audit question.
-- **Claude Code:** install the folder as `~/.claude/skills/claude-shield` for personal use or `.claude/skills/claude-shield` for a project, then invoke `/claude-shield` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
+- **Codex:** install the folder as `$CODEX_HOME/skills/anti-claude-check` or `~/.codex/skills/anti-claude-check`, then invoke `$anti-claude-check` or ask a matching audit question.
+- **Claude Code:** install the folder as `~/.claude/skills/anti-claude-check` for personal use or `.claude/skills/anti-claude-check` for a project, then invoke `/anti-claude-check` or ask a matching question. Claude Code may resolve bundled files through `${CLAUDE_SKILL_DIR}`.
 - **Other Agent Skills hosts:** preserve `SKILL.md`, `scripts/`, `assets/`, and their relative layout. Ignore `agents/openai.yaml` when the host does not use OpenAI interface metadata.
-- **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1` (or `<skill-root>/scripts/collect_posix_network.sh` on macOS/Linux). If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
+- **Other LLM agents:** load `SKILL.md` as instructions and run `<skill-root>/scripts/collect_windows_network.ps1`. On macOS/Linux, `scripts/collect_posix_network.sh` supplies only OS, proxy-environment presence, and Claude Code privacy-control state; mark DNS, routing, IPv6, browser, and proxy-client details as manual checks. If the agent cannot execute local commands, ask the user to run the collector and provide its JSON output.
 
-On Windows hosts, prefer `pwsh`; fall back to `powershell.exe` 5.1. On macOS or Linux hosts, run `scripts/collect_posix_network.sh`.
-To apply approved remediations interactively, run `<skill-root>/scripts/remediate_windows_network.ps1` on Windows, or `<skill-root>/scripts/remediate_posix_network.sh` on macOS/Linux.
+On Windows hosts, prefer `pwsh`; fall back to `powershell.exe` 5.1. On macOS or Linux hosts, use the limited POSIX collector without claiming full network coverage.
+After explicit approval, use the remediation scripts only for the documented Claude Code privacy environment variables. They must not reset device identifiers, delete caches, or change network adapters, DNS, routes, firewalls, VPNs, or browser fingerprints.
 
 ## Audit Workflow
 
 1. Establish the intended exit country or region and whether it is temporary or long-term.
-2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot (or `scripts/collect_posix_network.sh` on macOS/Linux). Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. Do not dump complete Mihomo configuration or subscription files, and redact the snapshot before sharing it.
+2. On Windows, resolve `<skill-root>/scripts/collect_windows_network.ps1` and run it to collect a local snapshot. Pass `-ConfigDir` for a non-default Clash Verge installation and `-PolicyGroupPattern` for locally named service groups. On macOS/Linux, use the limited POSIX collector and keep unsupported areas manual. Do not dump complete proxy configuration or subscription files, and redact the snapshot before sharing it.
 3. Review actual services, process and listener state, physical versus tunnel adapters, DNS configuration, proxy environment variables, Windows locale, browser profiles, extensions, policies, and Mihomo policy groups.
-4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `CLAUDE_SHIELD_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
+4. Open `<skill-root>/assets/browser-audit.html` in the Google Chrome and Microsoft Edge profiles the user normally uses. Use its English or Simplified Chinese interface, run it separately in each browser, review its heuristic score and findings, and optionally export a localized redacted PNG or copy the `ANTI_CLAUDE_BROWSER_REPORT_V1` block into the current LLM. Then inspect public IP reputation, unique-hostname DNS results, IPv4/IPv6, cross-site exits, the observed Accept-Language header, and the detector's fingerprint report. The local page does not replace external IP, DNS, or header tests.
 5. Label every result `verified`, `inferred`, or `manual check required`. Never turn missing data into a pass.
 6. Compare every signal with the intended exit rather than treating a detector's score as proof.
 7. Classify findings as `must fix`, `optional consistency`, or `leave alone`.
@@ -77,29 +77,19 @@ Use the snapshot and live browser tests together:
 | IP reputation | Country, ASN, provider type, proxy flags, abuse indicators, and blacklist claims from the supplied report | Separate confirmed routing facts from database opinions; corroborate severe claims when possible |
 | Cross-site routing | Observed exit country, ASN, and IP grouping for each tested site | Protected sites follow the intended group; intentional direct routes are documented; physical-ISP exits are failures |
 | Browser fingerprint | Detector values plus local OS, processor count, memory, GPU, and resolution context | Explain contradictions and confidence without prescribing spoofing or anti-detect tools |
-| Claude Code telemetry | DisableTelemetry env var, ~/.claude.json userID field, ~/.claude/telemetry cache size, Bedrock/Vertex API configuration | Telemetry is disabled or managed; device fingerprint is clean; no multi-device sharing |
+| Claude Code privacy | `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING`, `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, and provider configuration | Report exact verified values; change only documented opt-outs after approval |
 
-## Claude Code Telemetry & Account Suspension Risk Audit
+## Claude Code Privacy Controls
 
-Audit local Claude Code / CLI settings and explain account risk factors using findings from reverse-engineered client source code:
+Use only current, documented controls and distinguish metrics, error reports, feedback, and required model traffic:
 
-### 5 Primary Suspension Risk Factors (Ranked by Severity)
-
-1. **Account Sharing (Very High Risk)**: Single account (`account_uuid`) accessed across multiple `Device ID`s, accompanied by conflicting IPs, operating systems, or timezones.
-2. **Rate Limit Escalation (High Risk)**: Aggregated usage by `account_uuid` + `subscription_type` + `rate_limit_tier`. Repeatedly hitting limits triggers HTTP 429 errors which escalate to account bans.
-3. **Content & Anti-Distillation (High Risk)**: Automated content fingerprinting and detection of fake tool injection patterns or model distillation attempts.
-4. **Automation Abuse (Medium Risk)**: Combination of headless/CI execution environment, non-interactive shell execution, SDK entry point detection, and abnormal token consumption velocity.
-5. **Client Tampering (Medium Risk)**: Mismatched client version fingerprints, modified binary headers, or malformed User-Agent strings.
-
-### Telemetry & Device ID Audit Rules
-
-Use the collector's `ClaudeCode` section to audit local status:
-
-- **Telemetry Disablement (`DISABLE_TELEMETRY`)**: Verify whether `$env:DISABLE_TELEMETRY` is set to `1` across Process, User, or Machine environment variables. Recommend setting `$env:DISABLE_TELEMETRY=1` to disable local telemetry collection.
-- **Device Fingerprint Reset (`~/.claude.json`)**: Check if `~/.claude.json` contains a `userID` or `deviceId` identifier. If account sharing or multi-device ambiguity occurred, recommend deleting the `userID` field to reset the local device fingerprint.
-- **Telemetry Cache Cleanup (`~/.claude/telemetry/`)**: Inspect the local telemetry cache directory `$HOME\.claude\telemetry\`. Recommend clearing this directory if cached events have accumulated.
-- **Managed Enterprise Gateways**: Note whether Bedrock or Vertex API overrides (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`) are active, as these official enterprise endpoints automatically disable client telemetry analysis.
-- **Single Account Operational Baseline**: Advise strict adherence to 1 account = 1 user = 1 primary device/IP setup without sharing credentials across different locations.
+- Treat `DISABLE_TELEMETRY=1` as the verified opt-out for operational metrics. Any other value is not a pass.
+- Treat `DISABLE_ERROR_REPORTING=1` as the verified opt-out for operational error reports.
+- Treat `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` as the broad documented opt-out for non-essential traffic.
+- Treat an unset opt-out as a privacy preference, not a confirmed leak or account risk. The broad opt-out can disable optional Claude Code features and does not block required model traffic or the WebFetch domain-safety check; explain that tradeoff before setting it.
+- Record Bedrock, Vertex, or other provider configuration as context; do not infer account safety or eligibility from it.
+- Do not delete `~/.claude.json` fields, telemetry caches, logs, or session data as an anti-review measure.
+- Describe HTTP 429 as a rate-limit response unless current primary documentation proves a stronger conclusion. Never claim that a local setting prevents suspension.
 
 ## Interpret Results
 
@@ -205,17 +195,17 @@ Distinguish local interface settings from public egress behavior. A local IPv6-d
 
 If the user employs a proxy core other than Mihomo (e.g., Xray, Sing-Box native, Surge, Quantumult X):
 - Do not attempt to read or write Clash-specific YAML configurations.
-- Verify if the client supports a true TUN (virtual network interface) mode. If it only supports system proxy (HTTP/SOCKS), warn the user that DNS and WebRTC leaks are highly probable unless strict browser extensions are used.
-- For DNS, recommend enabling the client's equivalent of `fake-ip` or overriding system DNS to the TUN interface.
+- Verify the proxy client's documented routing and DNS behavior, then confirm it with live tests. Do not infer a leak from system-proxy mode alone or prescribe an extension without evidence.
+- Change DNS, IPv6, or TUN settings only after a live test identifies the bypassing layer.
 - **Use OS-Level Probes to Verify Isolation (macOS Example)**: Since you cannot read their proprietary config files, verify the actual OS network state:
   - Run `ifconfig | grep -E "utun|tun"` to ensure a virtual network interface is active.
   - Run `scutil --dns` to verify if DNS resolution is hijacked (look for `nameserver[0] : 198.18.0.2` or similar fake-ip ranges, and ensure no domestic ISP resolvers leak in the primary resolver array).
   - Run `netstat -nr -f inet | grep -e "default" -e "0/1" -e "128.0/1"` to verify if the default route or a fake-ip route points to the `utun` interface.
-- Rely on OS-level remediation (e.g., `remediate_windows_network.ps1` / `remediate_posix_network.sh`) to disable telemetry and physical IPv6, and instruct the user to manually configure their specific proxy client according to the physical isolation principles.
+- Use the remediation scripts only for documented privacy environment variables. Handle proxy-client and IPv6 changes manually, one verified setting at a time, after explicit approval.
 
 ## Report Format
 
-When the user supplies an `CLAUDE_SHIELD_BROWSER_REPORT_V1` block, parse its redacted evidence and display the page's overall and category scores before the evidence table. Treat the scores as transparent local heuristics, not independent proof. Explain each flagged item in the context of the collector and live tests; never convert an unknown public WebRTC candidate into a confirmed leak without comparing it with the intended exit.
+When the user supplies an `ANTI_CLAUDE_BROWSER_REPORT_V1` block, parse its redacted evidence and display the page's overall and category scores before the evidence table. Treat the scores as transparent local heuristics, not independent proof. Explain each flagged item in the context of the collector and live tests; never convert an unknown public WebRTC candidate into a confirmed leak without comparing it with the intended exit.
 
 Return a compact evidence table with these columns: `signal`, `status`, `confidence`, `evidence`, and `action`. Follow it with exactly three short sections:
 
