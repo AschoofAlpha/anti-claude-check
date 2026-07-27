@@ -1,4 +1,4 @@
 interface:
-  display_name: "Claude Shield (克劳德安全盾)"
-  short_description: "基于 Claude Code 源码风控逻辑的隐私审计与防封硬化"
-  default_prompt: "Use $claude-shield to adapt a read-only audit to this local setup (Windows/macOS/Linux), Clash Verge/Mihomo/Sing-Box, Chrome, Edge, and Claude Code environment. Audit routing, DNS, WebRTC, IPv6, browser language, exit checks, DISABLE_TELEMETRY, ~/.claude.json device fingerprints, and HTTP 429 rate-limit log risks, then run or recommend interactive remediation scripts."
+  display_name: "反 Claude 检查"
+  short_description: "本地代理、DNS、WebRTC 与浏览器一致性审计"
+  default_prompt: "Use $anti-claude-check to run a read-only local privacy and proxy-consistency audit, then separate confirmed fixes from optional consistency advice."

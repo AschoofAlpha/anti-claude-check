@@ -681,41 +681,21 @@ foreach ($scope in @('Process','User','Machine')) {
     }
 }
 
-$claudeDisableTelemetry = @()
-foreach ($scope in @('Process','User','Machine')) {
-    $val = [Environment]::GetEnvironmentVariable('DISABLE_TELEMETRY', $scope)
-    if ($val) {
-        $claudeDisableTelemetry += [pscustomobject][ordered]@{ Scope = $scope; Value = $val }
-    }
-}
-
-$claudeConfigFile = Join-Path $env:USERPROFILE '.claude.json'
-$claudeConfigExists = Test-Path -LiteralPath $claudeConfigFile -PathType Leaf
-$claudeHasUserId = $false
-$claudeHasDeviceId = $false
-if ($claudeConfigExists) {
-    $claudeJson = Read-JsonIfPresent -Path $claudeConfigFile
-    if ($null -ne $claudeJson) {
-        if ($null -ne (Get-PropertyValue -Object $claudeJson -Name 'userID')) {
-            $claudeHasUserId = $true
-        }
-        if ($null -ne (Get-PropertyValue -Object $claudeJson -Name 'deviceId')) {
-            $claudeHasDeviceId = $true
+function Get-EnvironmentValueRows {
+    param([Parameter(Mandatory = $true)][string]$Name)
+    $rows = @()
+    foreach ($scope in @('Process','User','Machine')) {
+        $value = [Environment]::GetEnvironmentVariable($Name, $scope)
+        if ($null -ne $value -and $value -ne '') {
+            $rows += [pscustomobject][ordered]@{ Scope = $scope; Value = $value }
         }
     }
+    return $rows
 }
 
-$telemetryDir = Join-Path (Join-Path $env:USERPROFILE '.claude') 'telemetry'
-$telemetryDirExists = Test-Path -LiteralPath $telemetryDir -PathType Container
-$telemetryFileCount = 0
-$telemetryTotalSizeBytes = 0
-if ($telemetryDirExists) {
-    $tFiles = @(Get-ChildItem -LiteralPath $telemetryDir -File -Recurse -ErrorAction SilentlyContinue)
-    $telemetryFileCount = $tFiles.Count
-    foreach ($f in $tFiles) {
-        $telemetryTotalSizeBytes += $f.Length
-    }
-}
+$claudeDisableTelemetry = @(Get-EnvironmentValueRows -Name 'DISABLE_TELEMETRY')
+$claudeDisableErrorReporting = @(Get-EnvironmentValueRows -Name 'DISABLE_ERROR_REPORTING')
+$claudeDisableNonessentialTraffic = @(Get-EnvironmentValueRows -Name 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC')
 
 $cloudProviders = [ordered]@{
     UseBedrock = [bool]([Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'Process') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'User') -or [Environment]::GetEnvironmentVariable('CLAUDE_CODE_USE_BEDROCK', 'Machine'))
@@ -732,39 +712,14 @@ foreach ($cn in $clientNames) {
     }
 }
 
-$claudeLogsDir = Join-Path (Join-Path $env:USERPROFILE '.claude') 'logs'
-$rateLimit429Count = 0
-$latest429Timestamp = $null
-if (Test-Path -LiteralPath $claudeLogsDir -PathType Container) {
-    $logFiles = @(Get-ChildItem -LiteralPath $claudeLogsDir -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 10)
-    foreach ($lf in $logFiles) {
-        try {
-            $lines = Get-Content -LiteralPath $lf.FullName -Tail 500 -ErrorAction SilentlyContinue
-            foreach ($line in $lines) {
-                if ($line -match '(?i)429|rate[ _]?limit|too many requests') {
-                    $rateLimit429Count++
-                    $tsMatch = [regex]::Match($line, '\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}')
-                    if ($tsMatch.Success) {
-                        $latest429Timestamp = $tsMatch.Value
-                    }
-                }
-            }
-        } catch {}
-    }
-}
-
 $claudeAudit = [ordered]@{
     DisableTelemetryVars = $claudeDisableTelemetry
-    DisableTelemetryActive = ($claudeDisableTelemetry.Count -gt 0)
-    ConfigFilePresent = $claudeConfigExists
-    HasUserIdFingerprint = $claudeHasUserId
-    HasDeviceIdFingerprint = $claudeHasDeviceId
-    TelemetryDirPresent = $telemetryDirExists
-    TelemetryFileCount = $telemetryFileCount
-    TelemetrySizeBytes = $telemetryTotalSizeBytes
+    DisableTelemetryActive = (@($claudeDisableTelemetry | Where-Object Value -eq '1').Count -gt 0)
+    DisableErrorReportingVars = $claudeDisableErrorReporting
+    DisableErrorReportingActive = (@($claudeDisableErrorReporting | Where-Object Value -eq '1').Count -gt 0)
+    DisableNonessentialTrafficVars = $claudeDisableNonessentialTraffic
+    DisableNonessentialTrafficActive = (@($claudeDisableNonessentialTraffic | Where-Object Value -eq '1').Count -gt 0)
     CloudProviders = $cloudProviders
-    RateLimit429EventsDetected = $rateLimit429Count
-    Latest429Timestamp = $latest429Timestamp
 }
 
 $dnsHijackAny53 = $combinedConfig -match "(?im)^\s*-\s*['`"]?any:53['`"]?\s*(?:#.*)?$"
@@ -834,4 +789,3 @@ $result = [ordered]@{
 }
 
 $result | ConvertTo-Json -Depth 10
-

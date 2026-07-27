@@ -27,12 +27,12 @@ def extract_ip(text: str):
         
     return None
 
-def check_egress_consistency(ctx: ProbeContext):
+def check_egress_consistency(ctx: ProbeContext, is_custom: bool = False):
     # Run multiple runtimes
     results = []
     
     # Python stdlib
-    py_text = run_python_probe(ctx.endpoint.url, ctx.timeout)
+    py_text = run_python_probe(ctx.endpoint.url, ctx.timeout, is_custom=is_custom)
     # curl stdlib
     curl_text = run_curl_probe(ctx.endpoint.url, ctx.timeout)
     

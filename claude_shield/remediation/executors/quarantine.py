@@ -31,8 +31,7 @@ class QuarantineExecutor(RemediationExecutor):
         # but for the plan generation we'll allow it if it's a report or log
         basename = os.path.basename(target)
         if basename == '.env' or 'browser-profiles' in target:
-            # We skip automatic quarantine planning for these, users must explicitly request
-            pass
+            return None
             
         before_hash = self.inspect(target)
         

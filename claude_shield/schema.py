@@ -24,7 +24,7 @@ def validate_report(report_dict: Dict[str, Any]):
         raise SchemaValidationError("Cannot contain both 'findings' and 'checks'.")
         
     for k in report_dict.keys():
-        if k not in ('schema_version', 'tool_version', 'generated_at', 'platform', 'privacy', 'checks', 'summary', 'errors'):
+        if k not in ('schema_version', 'tool_version', 'generated_at', 'platform', 'privacy', 'checks', 'summary', 'errors', 'score', 'score_categories'):
             raise SchemaValidationError(f"Unknown root field: {k}")
 
     # Validate allowed enums for checks

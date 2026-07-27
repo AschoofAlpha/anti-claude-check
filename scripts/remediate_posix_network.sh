@@ -1,130 +1,68 @@
 #!/usr/bin/env bash
-# Claude-Shield POSIX Remediation & Hardening (macOS/Linux)
+set -euo pipefail
 
-set -e
+base_dir="${HOME}/.anti-claude-check"
+env_file="${base_dir}/claude-code-privacy.env"
 
-CYAN='\033[0;36m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
-echo -e "${CYAN}====================================================${NC}"
-echo -e "${CYAN}  Claude-Shield POSIX Remediation & Hardening${NC}"
-echo -e "${CYAN}====================================================${NC}"
-echo ""
-
-REMEDIATIONS_APPLIED=0
-
-# Helper for prompting
-prompt_confirm() {
-    read -r -p "$1 [y/N] " response
-    case "$response" in
-        [yY][eE][sS]|[yY]) 
-            true
-            ;;
-        *)
-            false
-            ;;
-    esac
+usage() {
+  printf '%s\n' 'Usage:'
+  printf '%s\n' '  remediate_posix_network.sh            # preview only'
+  printf '%s\n' '  remediate_posix_network.sh --apply    # write the environment file'
+  printf '%s\n' '  remediate_posix_network.sh --restore BACKUP'
 }
 
-# 1. Disable Telemetry
-if prompt_confirm "Set DISABLE_TELEMETRY=1 in ~/.bashrc, ~/.zshrc, and macOS launchctl (for GUI apps)?"; then
-    for profile in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
-        if [ -f "$profile" ]; then
-            if ! grep -q "export DISABLE_TELEMETRY=1" "$profile"; then
-                echo -e "\nexport DISABLE_TELEMETRY=1" >> "$profile"
-                echo -e "${GREEN}[+ SUCCESS] Added DISABLE_TELEMETRY=1 to $profile${NC}"
-                ((REMEDIATIONS_APPLIED++))
-            else
-                echo -e "${YELLOW}[i] DISABLE_TELEMETRY=1 already exists in $profile${NC}"
-            fi
-        fi
-    done
-    
-    # Apply to macOS GUI apps (Cursor, VS Code) via launchctl
-    if [ "$(uname)" == "Darwin" ]; then
-        if launchctl setenv DISABLE_TELEMETRY 1; then
-            echo -e "${GREEN}[+ SUCCESS] Applied DISABLE_TELEMETRY=1 to macOS launchctl (GUI apps)${NC}"
-            ((REMEDIATIONS_APPLIED++))
-        else
-            echo -e "${RED}[- ERROR] Failed to apply launchctl setenv${NC}"
-        fi
+case "${1:-}" in
+  "")
+    printf '%s\n' 'Plan only: create a local file containing the documented Claude Code privacy opt-outs.'
+    printf '%s\n' "Target: ${env_file}"
+    printf '%s\n' 'No shell profile, network adapter, DNS, route, cache, or device identifier will be changed.'
+    ;;
+  --apply)
+    mkdir -p "${base_dir}/backups"
+    chmod 700 "${base_dir}" "${base_dir}/backups"
+    backup_base="${base_dir}/backups/claude-code-privacy.$(date -u +%Y%m%d-%H%M%S).$$"
+    if [ -f "${env_file}" ]; then
+      backup="${backup_base}.env"
+      cp "${env_file}" "${backup}"
+    else
+      backup="${backup_base}.absent"
+      : > "${backup}"
     fi
-fi
-
-# 2. Reset Device Fingerprint in ~/.claude.json
-CLAUDE_JSON="$HOME/.claude.json"
-if [ -f "$CLAUDE_JSON" ]; then
-    if prompt_confirm "Backup ~/.claude.json and reset userID/deviceId fingerprint?"; then
-        cp "$CLAUDE_JSON" "$CLAUDE_JSON.bak"
-        echo -e "${YELLOW}[i] Created backup at $CLAUDE_JSON.bak${NC}"
-        
-        # Use python to safely modify JSON
-        if command -v python3 &>/dev/null; then
-            python3 -c "
-import json, os
-path = os.path.expanduser('~/.claude.json')
-try:
-    with open(path, 'r') as f: data = json.load(f)
-    modified = False
-    if 'userID' in data:
-        del data['userID']
-        modified = True
-    if 'deviceId' in data:
-        del data['deviceId']
-        modified = True
-    if modified:
-        with open(path, 'w') as f: json.dump(data, f, indent=2)
-        print('${GREEN}[+ SUCCESS] Reset device fingerprint fields in ~/.claude.json${NC}')
-    else:
-        print('${YELLOW}[i] No userID or deviceId found in ~/.claude.json${NC}')
-except Exception as e:
-    print(f'${RED}[- ERROR] Failed to parse/write json: {e}${NC}')
-"
-            ((REMEDIATIONS_APPLIED++))
-        else
-            echo -e "${RED}[- ERROR] Python3 is required to safely modify JSON. Please edit manually.${NC}"
-        fi
+    chmod 600 "${backup}"
+    temp_file="$(mktemp "${base_dir}/.privacy-env.XXXXXX")"
+    trap 'rm -f "${temp_file}"' EXIT
+    printf '%s\n' \
+      'export DISABLE_TELEMETRY=1' \
+      'export DISABLE_ERROR_REPORTING=1' \
+      'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1' > "${temp_file}"
+    chmod 600 "${temp_file}"
+    mv "${temp_file}" "${env_file}"
+    trap - EXIT
+    printf 'Created %s\n' "${env_file}"
+    printf 'To apply in the current shell, run: source %q\n' "${env_file}"
+    printf 'Rollback: %q --restore %q\n' "$0" "${backup}"
+    ;;
+  --restore)
+    backup="${2:-}"
+    [ -f "${backup}" ] || { printf 'Backup not found: %s\n' "${backup}" >&2; exit 2; }
+    backup_parent="$(cd "$(dirname "${backup}")" && pwd -P)"
+    expected_parent="$(cd "${base_dir}/backups" && pwd -P)"
+    [ "${backup_parent}" = "${expected_parent}" ] || { printf '%s\n' "Restore file must be inside ${base_dir}/backups" >&2; exit 2; }
+    if [ -f "${env_file}" ] && ! cmp -s "${env_file}" <(printf '%s\n' \
+      'export DISABLE_TELEMETRY=1' \
+      'export DISABLE_ERROR_REPORTING=1' \
+      'export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1'); then
+      printf '%s\n' "Refusing to overwrite a modified ${env_file}" >&2
+      exit 2
     fi
-fi
-
-# 3. Clear Telemetry Cache
-TELEMETRY_DIR="$HOME/.claude/telemetry"
-if [ -d "$TELEMETRY_DIR" ]; then
-    if prompt_confirm "Clear telemetry cache in ~/.claude/telemetry/?"; then
-        rm -rf "$TELEMETRY_DIR"/*
-        echo -e "${GREEN}[+ SUCCESS] Cleared cached telemetry files from $TELEMETRY_DIR${NC}"
-        ((REMEDIATIONS_APPLIED++))
+    if [[ "${backup}" == *.absent ]]; then
+      rm -f -- "${env_file}"
+      printf 'Removed managed file %s\n' "${env_file}"
+    else
+      cp "${backup}" "${env_file}"
+      chmod 600 "${env_file}"
+      printf 'Restored %s from %s\n' "${env_file}" "${backup}"
     fi
-fi
-
-# 4. Disable Physical IPv6
-if prompt_confirm "Disable IPv6 on physical network adapters? (Requires sudo)"; then
-    if [ "$(uname)" == "Darwin" ]; then
-        # macOS: Loop through all network services to avoid locale/language regex failures
-        SERVICES=$(networksetup -listallnetworkservices | grep -v "\*")
-        while IFS= read -r SERVICE; do
-            if [ -n "$SERVICE" ]; then
-                # Attempt to disable IPv6. Suppress errors for services that don't support it (e.g. VPNs).
-                if sudo networksetup -setv6off "$SERVICE" 2>/dev/null; then
-                    echo -e "${GREEN}[+ SUCCESS] Disabled IPv6 on macOS network service: $SERVICE${NC}"
-                    ((REMEDIATIONS_APPLIED++))
-                fi
-            fi
-        done <<< "$SERVICES"
-    elif [ "$(uname)" == "Linux" ]; then
-        # Linux
-        if sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1 && sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1; then
-            echo -e "${GREEN}[+ SUCCESS] Disabled IPv6 system-wide on Linux (sysctl)${NC}"
-            ((REMEDIATIONS_APPLIED++))
-            echo -e "${YELLOW}[i] Note: To make this persistent across reboots, add these to /etc/sysctl.conf${NC}"
-        else
-            echo -e "${RED}[- ERROR] Failed to disable IPv6 via sysctl. Are you running as root/sudo?${NC}"
-        fi
-    fi
-fi
-
-echo ""
-echo -e "${CYAN}Remediation complete. Total actions taken: $REMEDIATIONS_APPLIED${NC}"
+    ;;
+  *) usage >&2; exit 2 ;;
+esac

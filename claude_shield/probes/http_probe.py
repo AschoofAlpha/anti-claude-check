@@ -7,6 +7,7 @@ import http.client
 from .safety import validate_url, is_safe_ip
 from .base import ProbeError
 from .proxy_detector import detect_proxy_for_url
+from .. import __version__
 
 class PinnedHTTPSConnection(http.client.HTTPSConnection):
     def __init__(self, host, port=None, pinned_ip=None, **kwargs):
@@ -47,9 +48,7 @@ def resolve_and_pick_ip(hostname):
     return safe_ips[0]
 
 def fetch_http(url: str, timeout: int = 5, max_bytes: int = 16384, is_custom: bool = False):
-    if is_custom:
-        # Phase 5A: Custom endpoints default to unavailable
-        raise ProbeError("Custom endpoints are not allowed. ssrf_validation_mode: unavailable")
+    validate_url(url)
 
     proxy_meta = detect_proxy_for_url(url)
     has_proxy = proxy_meta["proxy_applies_to_request"]
@@ -87,7 +86,7 @@ def fetch_http(url: str, timeout: int = 5, max_bytes: int = 16384, is_custom: bo
 
     req = urllib.request.Request(
         url,
-        headers={'User-Agent': 'Claude-Shield/0.1.0'}
+        headers={'User-Agent': f'Anti-Claude-Check/{__version__}'}
     )
     
     try:

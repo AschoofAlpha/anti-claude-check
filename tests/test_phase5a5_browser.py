@@ -101,14 +101,15 @@ class TestPhase5a5Browser(unittest.TestCase):
         
         pid = create_profile({"path": "/fake/chrome", "version": "1.0"})
         
-        process = launch_profile(pid, disable_extensions=True, extra_args=["--some-safe-arg"])
+        process = launch_profile(pid, disable_extensions=True, extra_args=["file:///safe-audit.html", "--some-unsafe-arg"])
         self.assertIsNotNone(process)
         
         # Check that subprocess was called with correct args
         called_args = mock_popen.call_args[0][0]
         self.assertEqual(called_args[0], "/fake/chrome")
         self.assertIn("--disable-extensions", called_args)
-        self.assertIn("--some-safe-arg", called_args)
+        self.assertIn("file:///safe-audit.html", called_args)
+        self.assertNotIn("--some-unsafe-arg", called_args)
         
         # Ensure user-data-dir is present
         data_dir_arg = next(arg for arg in called_args if arg.startswith("--user-data-dir="))

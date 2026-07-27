@@ -4,7 +4,7 @@ import datetime
 from pathlib import Path
 
 from .discovery import detect_browser
-from .chrome_flags import ALLOWED_FLAGS, sanitize_flags
+from .chrome_flags import DEFAULT_FLAGS, sanitize_flags
 from .profile import get_profile_dir, load_manifest, is_valid_profile_id, save_manifest
 from .lifecycle import is_profile_in_use
 
@@ -29,7 +29,7 @@ def launch_profile(profile_id: str, custom_browser_path: str = None, disable_ext
     if not browser_info["detected"]:
         raise Exception("Browser executable not found or not safe")
         
-    flags = list(ALLOWED_FLAGS)
+    flags = list(DEFAULT_FLAGS)
     flags.append(f"--user-data-dir={str(profile_data_dir)}")
     
     if disable_extensions and "--disable-extensions" not in flags:

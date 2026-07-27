@@ -12,23 +12,22 @@ def run_python_probe(url: str, timeout: int, is_custom: bool = False):
         return None, "unavailable"
 
 def run_curl_probe(url: str, timeout: int):
-    if not shutil.which('curl'):
+    curl = shutil.which('curl')
+    if not curl:
         return None, "unavailable"
         
     # Determine ssrf_validation_mode for curl based on proxy
-    from .http_probe import get_proxy_metadata
-    has_proxy = get_proxy_metadata()["proxy_configuration_detected"]
+    from .proxy_detector import detect_proxy_for_url
+    has_proxy = detect_proxy_for_url(url)["proxy_applies_to_request"]
     ssrf_mode = "proxy_limited" if has_proxy else "unavailable"
         
     try:
         # Prevent curlrc usage
-        env = {}
         result = subprocess.run(
-            ['curl', '-s', '-q', '--max-time', str(timeout), url],
+            [curl, '-s', '-q', '--max-time', str(timeout), '--proto', '=https', '--max-redirs', '0', url],
             capture_output=True,
             text=True,
             timeout=timeout+1,
-            env=env
         )
         if result.returncode == 0:
             return result.stdout, ssrf_mode
