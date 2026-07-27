@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/social-preview.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
+  <img src="assets/social-preview.en.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
 </p>
 
 <h1 align="center">Claude Shield</h1>
