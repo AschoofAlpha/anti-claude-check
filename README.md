@@ -17,7 +17,7 @@ The score is local evidence, not a prediction of account approval or suspension.
 ## Install as a Skill
 
 ```powershell
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
 ```
 
 Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder as `~/.claude/skills/anti-claude-check` and invoke `/anti-claude-check`. Other Agent Skills hosts should preserve `SKILL.md`, `scripts/`, `assets/`, and `agents/`.
