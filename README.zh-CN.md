@@ -1,8 +1,31 @@
-# 反 Claude 检查
+<p align="center">
+  <img src="assets/social-preview.jpg" alt="Claude Shield — 本地隐私与代理一致性审计" width="100%">
+</p>
 
-[English](README.md) · [Skill 指令](SKILL.md) · [MIT License](LICENSE)
+<h1 align="center">Claude Shield</h1>
 
-一个面向 Codex、Claude Code 和其他 Agent Skills 宿主的本地隐私与代理一致性审计工具。它检查真实的网络、DNS、WebRTC、IPv6 和浏览器矛盾，不伪造指纹、不隐藏自动化、不编造身份，也不承诺绕过平台审核。
+<p align="center"><strong>面向 Codex、Claude Code 和 Agent Skills 宿主的本地隐私与代理一致性审计。</strong></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/default-read--only-2DD4BF?style=flat-square" alt="默认只读">
+  <img src="https://img.shields.io/badge/platform-Windows-4F7CFF?style=flat-square" alt="Windows">
+  <img src="https://img.shields.io/badge/browser-Chrome%20%2F%20Edge-4F7CFF?style=flat-square" alt="Chrome 和 Edge">
+  <img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT License">
+</p>
+
+<p align="center"><a href="README.md">English</a> · <a href="SKILL.md">Skill 指令</a> · <a href="LICENSE">MIT License</a></p>
+
+> **先审计，只修改你明确批准的内容。**
+
+Claude Shield 检查真实的网络、DNS、WebRTC、IPv6 和浏览器矛盾，不伪造指纹、不隐藏自动化、不编造身份，也不承诺绕过平台审核。
+
+## 快速开始
+
+```powershell
+git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
+```
+
+在 Codex 中调用 `$anti-claude-check`。Claude Code 用户将同一目录安装到 `~/.claude/skills/anti-claude-check`，调用 `/anti-claude-check`。
 
 ## 你会得到什么
 
@@ -13,14 +36,6 @@
 - 可选且可回滚的隐私环境变量修复；不会自动修改 DNS、路由、防火墙、VPN、IPv6 网卡、设备 ID、缓存或浏览器指纹。
 
 评分只是本地证据，不是账号通过审核或避免封禁的预测。
-
-## 安装为 Skill
-
-```powershell
-git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
-```
-
-在 Codex 中调用 `$anti-claude-check`。Claude Code 用户将同一目录安装到 `~/.claude/skills/anti-claude-check`，调用 `/anti-claude-check`。其他 Agent Skills 宿主需保留 `SKILL.md`、`scripts/`、`assets/` 和 `agents/` 的相对结构。
 
 ## 只读采集
 
