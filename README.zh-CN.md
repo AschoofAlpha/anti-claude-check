@@ -17,7 +17,7 @@
 ## 安装为 Skill
 
 ```powershell
-git clone https://github.com/AschoofAlpha/anti-claude-check.git "$HOME/.codex/skills/anti-claude-check"
+git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
 ```
 
 在 Codex 中调用 `$anti-claude-check`。Claude Code 用户将同一目录安装到 `~/.claude/skills/anti-claude-check`，调用 `/anti-claude-check`。其他 Agent Skills 宿主需保留 `SKILL.md`、`scripts/`、`assets/` 和 `agents/` 的相对结构。
