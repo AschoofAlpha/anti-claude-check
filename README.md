@@ -1,8 +1,31 @@
-# 反 Claude 检查 · Anti Claude Check
+<p align="center">
+  <img src="assets/social-preview.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
+</p>
 
-[简体中文](README.zh-CN.md) · [Skill instructions](SKILL.md) · [MIT License](LICENSE)
+<h1 align="center">Claude Shield</h1>
 
-A local-first privacy and proxy-consistency audit for Codex, Claude Code, and other Agent Skills hosts. It checks observable network and browser contradictions without spoofing fingerprints, hiding automation, fabricating identity, or promising to bypass platform review.
+<p align="center"><strong>Local-first privacy and proxy-consistency audit for Codex, Claude Code, and Agent Skills hosts.</strong></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/default-read--only-2DD4BF?style=flat-square" alt="Read-only by default">
+  <img src="https://img.shields.io/badge/platform-Windows-4F7CFF?style=flat-square" alt="Windows">
+  <img src="https://img.shields.io/badge/browser-Chrome%20%2F%20Edge-4F7CFF?style=flat-square" alt="Chrome and Edge">
+  <img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT License">
+</p>
+
+<p align="center"><a href="README.zh-CN.md">简体中文</a> · <a href="SKILL.md">Skill instructions</a> · <a href="LICENSE">MIT License</a></p>
+
+> **Audit first. Change only what you approve.**
+
+Claude Shield checks observable network and browser contradictions without spoofing fingerprints, hiding automation, fabricating identity, or promising to bypass platform review.
+
+## Quick start
+
+```powershell
+git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
+```
+
+Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder as `~/.claude/skills/anti-claude-check` and invoke `/anti-claude-check`.
 
 ## What you get
 
@@ -13,14 +36,6 @@ A local-first privacy and proxy-consistency audit for Codex, Claude Code, and ot
 - Optional, reversible privacy environment-variable remediation. No automatic DNS, route, firewall, VPN, IPv6-adapter, device-ID, cache, or browser-fingerprint changes.
 
 The score is local evidence, not a prediction of account approval or suspension.
-
-## Install as a Skill
-
-```powershell
-git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
-```
-
-Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder as `~/.claude/skills/anti-claude-check` and invoke `/anti-claude-check`. Other Agent Skills hosts should preserve `SKILL.md`, `scripts/`, `assets/`, and `agents/`.
 
 ## Read-only collection
 
