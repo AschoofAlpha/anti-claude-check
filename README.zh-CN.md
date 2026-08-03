@@ -58,6 +58,8 @@ git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills
 
 审计结果只是本地证据，不是账号通过审核或避免封禁的预测。
 
+![Claude Shield 审计报告示例——信号、状态、置信度、证据、行动五列表格](assets/audit-demo.jpg)
+
 ## 只读采集
 
 Windows PowerShell 7：

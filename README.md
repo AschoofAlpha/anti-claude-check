@@ -58,6 +58,8 @@ Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder a
 
 The audit is local evidence, not a prediction of account approval or suspension.
 
+![Claude Shield audit report — signal, status, confidence, evidence, action](assets/audit-demo.jpg)
+
 ## Read-only collection
 
 Windows PowerShell 7:
