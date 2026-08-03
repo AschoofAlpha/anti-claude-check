@@ -107,6 +107,97 @@ def _collector_checks(data, include_recommendations=False):
             f"Set {variable}=1 only if that documented opt-out matches the user's privacy preference.",
         )
 
+    # System-level network and locale checks (run even when no Mihomo config is present)
+    system = data.get("System")
+    if isinstance(system, dict):
+        # Service mode: process, service, and mixed-port listener
+        proc_running = system.get("MihomoProcessRunning")
+        service_active = system.get("ServiceModeActive")
+        mixed_listening = system.get("MixedPortListening")
+        if proc_running is not None:
+            parts = []
+            if proc_running:
+                parts.append("process running")
+            if service_active:
+                parts.append("service mode active")
+            if mixed_listening:
+                parts.append("mixed-port listener present")
+            if proc_running and service_active and mixed_listening:
+                status, sev, expl = "pass", "info", "Observed " + ", ".join(parts) + "."
+            elif not parts:
+                status, sev, expl = "unknown", "info", "No Mihomo process, service, or mixed-port listener observed; confirm whether a proxy client is expected."
+            else:
+                status, sev, expl = "warning", "low", "Partial service state: " + ", ".join(parts) + "."
+            add("network.service", "Mihomo service mode", "network", status, sev, expl,
+                "Confirm the intended service mode and mixed-port listener in the active proxy client.")
+
+        # Teredo state
+        teredo = system.get("Teredo")
+        if isinstance(teredo, dict):
+            teredo_disabled = not teredo.get("Available") or bool(teredo.get("Disabled"))
+            add("network.teredo", "Teredo state", "network",
+                "pass" if teredo_disabled else "warning",
+                "info" if teredo_disabled else "low",
+                "Teredo is disabled." if teredo_disabled
+                else f"Teredo is available ({teredo.get('Type', 'unknown')}) and not disabled; confirm it cannot expose a physical-uplink route.",
+                "Do not disable the Mihomo/tunnel adapter; address Teredo only if it demonstrably bypasses the proxy.")
+
+        # Physical adapter IPv6 bindings
+        bindings = system.get("ActiveAdapterIPv6Bindings")
+        if isinstance(bindings, list):
+            physical_enabled = [b for b in bindings
+                                if isinstance(b, dict) and b.get("Classification") == "Physical" and b.get("Enabled")]
+            add("network.ipv6_binding", "Physical adapter IPv6 binding", "network",
+                "pass" if not physical_enabled else "warning",
+                "info" if not physical_enabled else "low",
+                "No physical adapter exposes enabled IPv6." if not physical_enabled
+                else f"{len(physical_enabled)} physical adapter(s) have IPv6 enabled; confirm no physical-uplink bypass.",
+                "Adjust IPv6 only when it demonstrably bypasses the proxy; do not disable the tunnel adapter.")
+
+        # Environment proxy variables (existence only — values are never revealed)
+        env_proxies = system.get("ProxyEnvironmentVariables")
+        if isinstance(env_proxies, list):
+            present = sorted({p.get("Name") for p in env_proxies
+                              if isinstance(p, dict) and p.get("Present")})
+            if present:
+                add("network.env_proxy", "Environment proxy variables", "network",
+                    "unknown", "info",
+                    f"Proxy environment variables present: {', '.join(present)}.",
+                    "Explain whether each is intentional; values are never revealed.")
+            else:
+                add("network.env_proxy", "Environment proxy variables", "network",
+                    "pass", "info",
+                    "No proxy environment variables are set.",
+                    "")
+
+        # Windows locale consistency
+        culture = system.get("Culture")
+        ui_culture = system.get("UICulture")
+        sys_locale = system.get("SystemLocale")
+        langs = system.get("UserLanguageList")
+        primary_lang = langs[0] if isinstance(langs, list) and langs else None
+        locale_set = {c for c in (culture, ui_culture, sys_locale) if c}
+        mismatches = []
+        if len(locale_set) > 1:
+            mismatches.append("Culture/UICulture/SystemLocale differ")
+        if primary_lang and culture and not primary_lang.lower().startswith(culture.split("-")[0].lower()):
+            mismatches.append("primary user language differs from culture")
+        if mismatches:
+            add("system.locale", "Windows locale consistency", "system",
+                "warning", "info",
+                "; ".join(mismatches) + ".",
+                "Only change values that reflect genuine long-term use.")
+        elif locale_set:
+            add("system.locale", "Windows locale consistency", "system",
+                "pass", "info",
+                f"Locale is consistent (culture {culture}).",
+                "")
+        else:
+            add("system.locale", "Windows locale consistency", "system",
+                "unknown", "info",
+                "Locale information is incomplete.",
+                "")
+
     mihomo = data.get("Mihomo")
     if not isinstance(mihomo, dict) or not (mihomo.get("AppConfigPresent") or mihomo.get("RuntimeConfigPresent")):
         add("network.mihomo", "Mihomo configuration", "network", "unknown", "info", "No Mihomo runtime configuration was available for automatic interpretation.")
