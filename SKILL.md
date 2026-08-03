@@ -54,8 +54,18 @@ checks = analyze_snapshot(redacted)        # list[AuditCheck] with status/severi
 summary = summarize(checks)                # severity counts
 ```
 
+For a one-call local-plus-online audit (collector, redaction, analysis, and live egress probes in a single step):
+
+```python
+from claude_shield.analyze import run_full_audit
+result = run_full_audit(probe_timeout=5)
+checks, summary, snapshot = result["checks"], result["summary"], result["snapshot"]
+```
+
 - `run_legacy_collector()` raises `CollectorError` on failure; it never prints or exits.
 - `analyze_snapshot()` returns `AuditCheck` objects; system-level checks run even when no Mihomo config is present.
+- Coverage includes privacy opt-outs, service mode, Teredo, physical IPv6 bindings, physical-ISP DNS resolvers, proxy environment variables, Windows locale, rule-mode routing, DNS (fake-IP, hijack, respect-rules, IPv6 consistency, encrypted upstreams), TUN stack, and policy-group selection.
+- `run_full_audit()` contacts public probe endpoints to observe egress; present that tradeoff when interactive, and never treat probe failure as a leak.
 - Feed the same `checks` into the Report Format section below. Do not re-derive the checks from raw JSON unless the library cannot run (then label every result `manual check required`).
 - The package has no CLI and no browser component; it is a library only.
 

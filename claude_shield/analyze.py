@@ -156,6 +156,34 @@ def analyze_snapshot(data, include_recommendations=False):
                 else f"{len(physical_enabled)} physical adapter(s) have IPv6 enabled; confirm no physical-uplink bypass.",
                 "Adjust IPv6 only when it demonstrably bypasses the proxy; do not disable the tunnel adapter.")
 
+        # Local DNS servers: flag physical-ISP IPv4 resolvers that could bypass the tunnel
+        dns_servers = system.get("LocalDnsServers")
+        if isinstance(dns_servers, list) and dns_servers:
+            physical_ipv4 = []
+            for entry in dns_servers:
+                if not isinstance(entry, dict):
+                    continue
+                iface = str(entry.get("Interface", ""))
+                # Skip tunnel/virtual/loopback interfaces; keep physical uplinks (WLAN, Ethernet, ????)
+                if any(t in iface.lower() for t in ("sstap", "tun", "tap", "vpn", "openvpn", "virtual", "loopback", "hyper-v")):
+                    continue
+                family = entry.get("Family")
+                servers = entry.get("Servers") or []
+                if family in (2, "2", "ipv4") and servers:
+                    for srv in servers:
+                        if srv and not srv.startswith("127.") and not srv.startswith("198.18."):
+                            physical_ipv4.append(f"{iface}:{srv}")
+            if physical_ipv4:
+                add("network.dns_physical_resolver", "Physical-ISP DNS resolver", "network",
+                    "warning", "low",
+                    f"Physical adapter DNS resolver(s) present: {', '.join(dict.fromkeys(physical_ipv4))}.",
+                    "With fake-IP and port-53 hijacking active these are usually inert, but confirm a live test shows no physical-ISP resolver.")
+            else:
+                add("network.dns_physical_resolver", "Physical-ISP DNS resolver", "network",
+                    "pass", "info",
+                    "No physical-ISP IPv4 resolver observed; tunnel or loopback resolvers only.",
+                    "")
+
         # Environment proxy variables (existence only — values are never revealed)
         env_proxies = system.get("ProxyEnvironmentVariables")
         if isinstance(env_proxies, list):
@@ -227,6 +255,81 @@ def analyze_snapshot(data, include_recommendations=False):
             f"Observed {key}={value!r}." if value is not None else f"{key} requires manual confirmation.",
             "Confirm the setting in the active proxy client before changing it.",
         )
+
+    # DNS respect-rules: must be enabled so fake-IP resolution honors rule routing
+    respect_rules = mihomo.get("DnsRespectRules")
+    if respect_rules is not None:
+        status = "pass" if respect_rules else "warning"
+        add("network.dns_respect_rules", "DNS respect-rules", "network", status,
+            "info" if status == "pass" else "low",
+            f"Observed DnsRespectRules={respect_rules!r}.",
+            "Enable respect-rules so DNS resolution follows rule routing instead of bypassing the proxy.")
+
+    # DNS IPv6: report consistency with the IPv6 toggle, do not judge alone
+    dns_ipv6 = mihomo.get("DnsIPv6")
+    ipv6 = mihomo.get("IPv6")
+    if dns_ipv6 is not None:
+        consistent = (dns_ipv6 == ipv6) if ipv6 is not None else None
+        status = "pass" if consistent else "unknown" if consistent is None else "warning"
+        add("network.dns_ipv6", "DNS IPv6 consistency", "network", status,
+            "info" if status != "warning" else "low",
+            f"Observed DnsIPv6={dns_ipv6!r}, IPv6={ipv6!r}."
+            if ipv6 is not None else f"Observed DnsIPv6={dns_ipv6!r}.",
+            "Confirm whether IPv6 DNS resolution is intended given the IPv6 routing toggle.")
+
+    # Encrypted DNS upstreams: presence of DoH/DoT upstreams
+    upstreams = mihomo.get("EncryptedDnsUpstreams")
+    if upstreams is not None:
+        hosts = sorted({u.get("Host", "") for u in upstreams if isinstance(u, dict) and u.get("Host")})
+        status = "pass" if hosts else "warning"
+        add("network.dns_encrypted", "Encrypted DNS upstreams", "network", status,
+            "info" if status == "pass" else "low",
+            f"Encrypted upstreams present: {', '.join(hosts)}." if hosts
+            else "No encrypted DNS upstreams are configured.",
+            "Prefer DoH/DoT upstreams so DNS lookups stay encrypted and consistent with the exit.")
+
+    # TUN stack: informational, note non-gvisor stacks
+    tun_stack = mihomo.get("TunStack")
+    if tun_stack is not None:
+        recommended = str(tun_stack).lower() == "gvisor"
+        add("network.tun_stack", "TUN stack", "network",
+            "pass" if recommended else "info",
+            "info",
+            f"Observed TunStack={tun_stack!r}.",
+            "gvisor is the commonly proven stack on Windows; other stacks may still work but warrant verification.")
+
+    # Policy group: no automatic selectors in the selection chain
+    policy = mihomo.get("PolicyGroups")
+    if isinstance(policy, dict):
+        runtime_groups = policy.get("RuntimeGroups")
+        assessment = policy.get("SelectionAssessment")
+        if isinstance(runtime_groups, list) and runtime_groups:
+            auto = [g for g in runtime_groups
+                    if isinstance(g, dict) and g.get("UsesAutomaticSelection")]
+            chain_auto = []
+            for g in runtime_groups:
+                if not isinstance(g, dict):
+                    continue
+                chain = g.get("SelectionChain") or []
+                for link in chain:
+                    if not isinstance(link, dict):
+                        continue
+                    ltype = str(link.get("Type", "")).lower()
+                    if ltype in ("url-test", "fallback", "load-balance", "smart", "urltest"):
+                        chain_auto.append(f"{g.get('Name', '?')}->{link.get('Name', '?')}({link.get('Type')})")
+            fixed = assessment == "FixedSelection"
+            status = "pass" if (fixed and not auto and not chain_auto) else "warning"
+            explanation = f"Policy selection is fixed ({assessment!r}) with no automatic selectors."
+            if auto or chain_auto:
+                explanation = f"Automatic selector(s) present: {', '.join(chain_auto or [a.get('Name', '?') for a in auto])}."
+            add("network.policy_group", "Policy group selection", "network", status,
+                "info" if status == "pass" else "low",
+                explanation,
+                "Pin the sensitive service group to a fixed manual selection; automatic selectors can change the exit unpredictably.")
+        else:
+            add("network.policy_group", "Policy group selection", "network", "unknown", "info",
+                "Policy group runtime selection is unavailable; verify the selected group in the Clash Verge UI.")
+
     return checks
 
 
@@ -236,3 +339,39 @@ def summarize(checks):
     for check in checks:
         summary[check.severity] = summary.get(check.severity, 0) + 1
     return summary
+
+
+def run_full_audit(probe_timeout=5, include_recommendations=False):
+    """One-call audit: run the collector, redact, analyze, and run online probes.
+
+    Returns a dict with ``checks`` (list[AuditCheck], local analysis first,
+    then probe results), ``summary`` (severity counts), and ``snapshot``
+    (redacted collector JSON for the agent's report context).
+
+    Online probes contact public endpoints to observe egress; callers
+    should present that tradeoff before invoking this when interactive.
+    """
+    from .redaction import Redactor
+    from .probes.base import run_probes
+
+    snapshot = run_legacy_collector()
+    redacted = Redactor().scan_and_redact(snapshot)
+    checks = analyze_snapshot(redacted, include_recommendations=include_recommendations)
+    try:
+        probe_results = run_probes(None, timeout=probe_timeout)
+        checks.extend(probe_results)
+    except Exception as exc:  # probes are best-effort; never fail the audit
+        checks.append(AuditCheck(
+            id="network.egress.probe_error",
+            title="Online probe failure",
+            category="network",
+            status="unknown",
+            severity="info",
+            confidence="unknown",
+            explanation=f"Online probes could not run: {exc}",
+        ))
+    return {
+        "checks": checks,
+        "summary": summarize(checks),
+        "snapshot": redacted,
+    }
