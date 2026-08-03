@@ -14,9 +14,32 @@
 
 <p align="center"><a href="README.zh-CN.md">简体中文</a> · <a href="SKILL.md">Skill instructions</a> · <a href="LICENSE">MIT License</a></p>
 
-> **Audit first. Change only what you approve.**
-
-Claude Shield checks observable network and system contradictions without spoofing fingerprints, hiding automation, fabricating identity, or promising to bypass platform review.
+> **How is your Claude account doing lately?**
+>
+> It's probably not bad luck — it's the road your traffic takes. You think everything goes through your proxy, but actually: DNS quietly falls back to your home broadband, a "backup tunnel" connects directly without the proxy, a small WebRTC backdoor lets websites see your real network address, or your proxy node randomly hops between countries at 3am.
+>
+> **Every one of these leaks tells the platform "something's off."** Accounts get flagged, challenged, even banned — often not because of what you say, but because of these details exposing you.
+>
+> Claude Shield is the tool that checks those details for you — **a read-only checkup that touches nothing**:
+>
+> - **Network egress**: where does your traffic actually leave from, and is anything bypassing the proxy?
+> - **DNS resolution**: does a simple lookup secretly detour somewhere it shouldn't?
+> - **Proxy setup**: are your nodes auto-hopping, are your rules silently broken?
+> - **System state**: do your timezone, language, and privacy toggles contradict each other?
+>
+> When the checkup finishes, you get a **clear report** — every item labeled: **Must fix** (a real problem), **Optional consistency** (not a risk, but worth aligning), **Leave alone** (don't touch it).
+>
+> Then the decision is **entirely yours** — nothing changes without your explicit approval.
+>
+> And here's what this tool **won't do**:
+>
+> - It won't help you **impersonate someone else** (no fingerprint spoofing, no hiding automation)
+> - It won't help you **fabricate identity** (no fake addresses, billing, or personal info)
+> - It will never **guarantee** "this config means you'll never get banned" — anyone who promises that is lying to you.
+>
+> The "anti-ban" tools teach you to fool the platform. Claude Shield does one thing: **show you the truth**, and give you back the choice.
+>
+> **Audit first. Decide after.** Your account deserves one honest check.
 
 ## Install
 
