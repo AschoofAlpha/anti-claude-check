@@ -19,6 +19,7 @@ include = ["claude_shield*"]
 
 [tool.setuptools.data-files]
 "share/anti-claude-check" = ["SKILL.md", "README.md", "README.zh-CN.md", "LICENSE"]
+"share/anti-claude-check/assets" = ["assets/social-preview.en.jpg", "assets/social-preview.jpg"]
 "share/anti-claude-check/scripts" = [
     "scripts/collect_posix_network.sh",
     "scripts/collect_windows_network.ps1",

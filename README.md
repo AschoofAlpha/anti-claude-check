@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/social-preview.en.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
+</p>
+
 <h1 align="center">Claude Shield</h1>
 
 <p align="center"><strong>Local-first privacy and proxy-consistency audit for Claude Code and Agent Skills hosts.</strong></p>

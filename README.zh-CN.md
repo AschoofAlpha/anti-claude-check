@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/social-preview.jpg" alt="Claude Shield — 本地隐私与代理一致性审计" width="100%">
+</p>
+
 <h1 align="center">Claude Shield</h1>
 
 <p align="center"><strong>面向 Codex、Claude Code 和 Agent Skills 宿主的本地隐私与代理一致性审计。</strong></p>
