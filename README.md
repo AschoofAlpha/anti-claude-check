@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/social-preview.en.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
+  <img src="https://raw.githubusercontent.com/AschoofAlpha/claude-shield/main/assets/social-preview.en.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
 </p>
 
 <h1 align="center">Claude Shield</h1>
@@ -59,7 +59,7 @@ Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder a
 
 The audit is local evidence, not a prediction of account approval or suspension.
 
-![Claude Shield audit report — signal, status, confidence, evidence, action](assets/audit-demo.jpg)
+![Claude Shield audit report — signal, status, confidence, evidence, action](https://raw.githubusercontent.com/AschoofAlpha/claude-shield/main/assets/audit-demo.jpg)
 
 ## Read-only collection
 

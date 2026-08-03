@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anti-claude-check"
-version = "1.1.0"
+version = "1.1.1"
 description = "Local privacy and proxy consistency audit skill"
 readme = "README.md"
 requires-python = ">=3.8"
+license = "MIT"
 authors = [
     {name = "Anti Claude Check Authors"}
 ]

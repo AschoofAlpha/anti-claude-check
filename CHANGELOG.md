@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-03
+
+### Fixed
+- PyPI metadata: added `license = "MIT"` (previously showed as None).
+- README image paths switched to absolute raw.githubusercontent URLs so the social preview and audit demo render on the PyPI project page (relative paths broke inside the wheel).
+
 ## [1.1.0] - 2026-08-03
 
 ### Added
