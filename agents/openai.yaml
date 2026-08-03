@@ -1,4 +1,4 @@
 interface:
   display_name: "反 Claude 检查"
-  short_description: "本地代理、DNS、WebRTC 与浏览器一致性审计"
+  short_description: "本地代理、DNS、IPv6 与系统一致性审计"
   default_prompt: "Use $anti-claude-check to run a read-only local privacy and proxy-consistency audit, then separate confirmed fixes from optional consistency advice."

@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from claude_shield.cli import _collector_checks
+from claude_shield.analyze import analyze_snapshot
 
 
 def _ids(checks):
@@ -13,7 +13,7 @@ def _ids(checks):
 class TestSystemLevelChecks(unittest.TestCase):
 
     def test_service_mode_full_pass(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "MihomoProcessRunning": True,
             "ServiceModeActive": True,
             "MixedPortListening": True,
@@ -22,7 +22,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.service"].status, "pass")
 
     def test_service_mode_partial_warning(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "MihomoProcessRunning": True,
             "ServiceModeActive": False,
             "MixedPortListening": False,
@@ -32,7 +32,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.service"].severity, "low")
 
     def test_service_mode_none_unknown(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "MihomoProcessRunning": False,
             "ServiceModeActive": False,
             "MixedPortListening": False,
@@ -41,21 +41,21 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.service"].status, "unknown")
 
     def test_teredo_disabled_pass(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "Teredo": {"Available": True, "Type": "Disabled", "Disabled": True},
         }})
         ids = _ids(checks)
         self.assertEqual(ids["network.teredo"].status, "pass")
 
     def test_teredo_enabled_warning(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "Teredo": {"Available": True, "Type": "Client", "Disabled": False},
         }})
         ids = _ids(checks)
         self.assertEqual(ids["network.teredo"].status, "warning")
 
     def test_ipv6_binding_no_physical_enabled_pass(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "ActiveAdapterIPv6Bindings": [
                 {"Interface": "vEthernet", "Classification": "VirtualOrOther", "Enabled": True},
                 {"Interface": "Realtek", "Classification": "Physical", "Enabled": False},
@@ -65,7 +65,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.ipv6_binding"].status, "pass")
 
     def test_ipv6_binding_physical_enabled_warning(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "ActiveAdapterIPv6Bindings": [
                 {"Interface": "Realtek", "Classification": "Physical", "Enabled": True},
             ],
@@ -74,7 +74,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.ipv6_binding"].status, "warning")
 
     def test_env_proxy_present_unknown(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "ProxyEnvironmentVariables": [
                 {"Scope": "Process", "Name": "HTTP_PROXY", "Present": True},
                 {"Scope": "User", "Name": "NO_PROXY", "Present": True},
@@ -88,7 +88,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertNotIn("://", ids["network.env_proxy"].explanation)
 
     def test_env_proxy_absent_pass(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "ProxyEnvironmentVariables": [
                 {"Scope": "Process", "Name": "HTTP_PROXY", "Present": False},
             ],
@@ -97,7 +97,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["network.env_proxy"].status, "pass")
 
     def test_locale_consistent_pass(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "Culture": "en-US",
             "UICulture": "en-US",
             "SystemLocale": "en-US",
@@ -107,7 +107,7 @@ class TestSystemLevelChecks(unittest.TestCase):
         self.assertEqual(ids["system.locale"].status, "pass")
 
     def test_locale_mismatch_warning(self):
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "Culture": "en-US",
             "UICulture": "en-GB",
             "SystemLocale": "zh-CN",
@@ -118,7 +118,7 @@ class TestSystemLevelChecks(unittest.TestCase):
 
     def test_system_checks_run_without_mihomo(self):
         # Regression: system checks must run even when Mihomo config is absent
-        checks = _collector_checks({"System": {
+        checks = analyze_snapshot({"System": {
             "Teredo": {"Available": True, "Disabled": True},
         }})
         ids = _ids(checks)
@@ -128,7 +128,7 @@ class TestSystemLevelChecks(unittest.TestCase):
 
     def test_known_ids_unchanged(self):
         # Existing Mihomo checks keep their ids when config is present
-        checks = _collector_checks({"Mihomo": {
+        checks = analyze_snapshot({"Mihomo": {
             "AppConfigPresent": True,
             "Mode": "Rule",
             "AllowLan": False,

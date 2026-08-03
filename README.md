@@ -1,15 +1,10 @@
-<p align="center">
-  <img src="assets/social-preview.en.jpg" alt="Claude Shield — local-first privacy and proxy audit" width="100%">
-</p>
-
 <h1 align="center">Claude Shield</h1>
 
-<p align="center"><strong>Local-first privacy and proxy-consistency audit for Codex, Claude Code, and Agent Skills hosts.</strong></p>
+<p align="center"><strong>Local-first privacy and proxy-consistency audit for Claude Code and Agent Skills hosts.</strong></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/default-read--only-2DD4BF?style=flat-square" alt="Read-only by default">
   <img src="https://img.shields.io/badge/platform-Windows-4F7CFF?style=flat-square" alt="Windows">
-  <img src="https://img.shields.io/badge/browser-Chrome%20%2F%20Edge-4F7CFF?style=flat-square" alt="Chrome and Edge">
   <img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT License">
 </p>
 
@@ -17,9 +12,9 @@
 
 > **Audit first. Change only what you approve.**
 
-Claude Shield checks observable network and browser contradictions without spoofing fingerprints, hiding automation, fabricating identity, or promising to bypass platform review.
+Claude Shield checks observable network and system contradictions without spoofing fingerprints, hiding automation, fabricating identity, or promising to bypass platform review.
 
-## Quick start
+## Install
 
 ```powershell
 git clone https://github.com/AschoofAlpha/claude-shield.git "$HOME/.codex/skills/anti-claude-check"
@@ -29,13 +24,12 @@ Invoke `$anti-claude-check` in Codex. For Claude Code, install the same folder a
 
 ## What you get
 
-- A full read-only Windows collector for proxy, DNS, IPv6, browser, and documented Claude Code privacy settings, plus a limited POSIX environment summary.
-- A bilingual Chrome/Edge page with a transparent 0–100 heuristic score, category bars, findings, LLM-ready text, redacted JSON, and a PNG report.
+- A full read-only Windows collector for proxy, DNS, IPv6, system, and documented Claude Code privacy settings, plus a limited POSIX environment summary.
 - Clash Verge/Mihomo checks for rule mode, system proxy, service/TUN state, `strict-route`, fake-IP, DNS hijacking, LAN access, and the actual policy selection when its local controller is available.
 - Recommendations split into **Must fix**, **Optional consistency**, and **Leave alone**.
 - Optional, reversible privacy environment-variable remediation. No automatic DNS, route, firewall, VPN, IPv6-adapter, device-ID, cache, or browser-fingerprint changes.
 
-The score is local evidence, not a prediction of account approval or suspension.
+The audit is local evidence, not a prediction of account approval or suspension.
 
 ## Read-only collection
 
@@ -59,27 +53,9 @@ bash ./scripts/collect_posix_network.sh
 
 Collector output can contain local identifiers. Keep raw output local and let the Skill redact it before sharing.
 
-## Browser score and image report
+## Report
 
-Open [`assets/browser-audit.html`](assets/browser-audit.html) in the normal Chrome profile, run the audit, then repeat in Edge. The page:
-
-- reads ordinary browser-provided values without changing them;
-- displays an English or Simplified Chinese score and findings;
-- exports a CLI-compatible redacted JSON report;
-- copies an `ANTI_CLAUDE_BROWSER_REPORT_V1` block for an LLM;
-- generates a localized PNG report.
-
-The optional WebRTC test contacts Google's public STUN service once. Raw ICE addresses remain visible only on the local page; exported reports replace them with classifications.
-
-## Optional CLI
-
-```powershell
-python -m pip install .
-anti-claude-check audit --offline --format json
-anti-claude-check browser import .\browser-audit.json
-```
-
-`claude-shield` remains as a compatibility command. The wheel includes the collector scripts, browser page, schema, Skill instructions, and bilingual README.
+The Skill returns a compact evidence table (`signal`, `status`, `confidence`, `evidence`, `action`) followed by three short sections: **Must fix**, **Optional consistency**, and **Leave alone**. See `SKILL.md` for the exact report format and interpretation rules.
 
 ## Privacy opt-outs
 

@@ -13,19 +13,12 @@ authors = [
 ]
 dependencies = []
 
-[project.scripts]
-anti-claude-check = "claude_shield.cli:main"
-claude-shield = "claude_shield.cli:main"
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["claude_shield*"]
 
 [tool.setuptools.data-files]
-"share/anti-claude-check" = ["SKILL.md", "README.md", "README.zh-CN.md", "LICENSE", "anti-claude-check.ps1", "anti-claude-check.sh", "claude-shield.ps1", "claude-shield.sh"]
-"share/anti-claude-check/agents" = ["agents/openai.yaml"]
-"share/anti-claude-check/assets" = ["assets/browser-audit.html", "assets/social-preview.jpg", "assets/social-preview.en.jpg"]
-"share/anti-claude-check/schemas" = ["schemas/browser-audit.schema.json"]
+"share/anti-claude-check" = ["SKILL.md", "README.md", "README.zh-CN.md", "LICENSE"]
 "share/anti-claude-check/scripts" = [
     "scripts/collect_posix_network.sh",
     "scripts/collect_windows_network.ps1",
