@@ -59,8 +59,6 @@ class AuditReport:
     checks: List[AuditCheck]
     summary: Dict[str, int]
     errors: List[ToolError] = field(default_factory=list)
-    score: Optional[int] = None
-    score_categories: Dict[str, Optional[int]] = field(default_factory=dict)
 
     @property
     def findings(self):

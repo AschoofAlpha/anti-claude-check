@@ -38,6 +38,27 @@ Use the directory containing this `SKILL.md` as `<skill-root>`. Resolve bundled 
 On Windows hosts, prefer `pwsh`; fall back to `powershell.exe` 5.1. On macOS or Linux hosts, use the limited POSIX collector without claiming full network coverage.
 After explicit approval, use the remediation scripts only for the documented Claude Code privacy environment variables. They must not reset device identifiers, delete caches, or change network adapters, DNS, routes, firewalls, VPNs, or browser fingerprints.
 
+## Analysis Library
+
+The bundled `claude_shield/analyze.py` package provides the standard analysis layer. Import it instead of hand-writing checks from the raw snapshot, so results stay consistent across runs:
+
+```python
+import sys
+sys.path.insert(0, "<skill-root>")
+from claude_shield.analyze import run_legacy_collector, analyze_snapshot, summarize
+from claude_shield.redaction import Redactor
+
+snapshot = run_legacy_collector()          # runs scripts/collect_windows_network.ps1
+redacted = Redactor().scan_and_redact(snapshot)
+checks = analyze_snapshot(redacted)        # list[AuditCheck] with status/severity/explanation
+summary = summarize(checks)                # severity counts
+```
+
+- `run_legacy_collector()` raises `CollectorError` on failure; it never prints or exits.
+- `analyze_snapshot()` returns `AuditCheck` objects; system-level checks run even when no Mihomo config is present.
+- Feed the same `checks` into the Report Format section below. Do not re-derive the checks from raw JSON unless the library cannot run (then label every result `manual check required`).
+- The package has no CLI and no browser component; it is a library only.
+
 ## Audit Workflow
 
 1. Establish the intended exit country or region and whether it is temporary or long-term.

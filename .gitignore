@@ -9,8 +9,6 @@ build/
 dist/
 *.egg-info/
 venv/
-dummy.txt
-current_structure.txt
 # BEGIN Claude Shield managed rules
 .env
 .env.local
